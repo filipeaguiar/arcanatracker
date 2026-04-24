@@ -1,0 +1,97 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { logout } from "@/lib/actions/auth";
+import { Home, CreditCard, FileText, Repeat, Settings, LogOut, User } from "lucide-react";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ padding: "var(--space-4) var(--space-8)", position: "sticky", top: 0, zIndex: 100 }}>
+        <header
+          className="glass"
+          style={{
+            padding: "var(--space-3) var(--space-6)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "rgba(10, 10, 15, 0.65)", // Mais transparente para realçar o blur do vidro fosco
+            boxShadow: "var(--shadow-lg)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-8)", minWidth: 0 }}>
+            <div
+              className="desktop-only"
+              style={{
+                fontSize: "var(--text-xl)",
+                fontWeight: "800",
+                background: "var(--gradient-brand)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                letterSpacing: "-0.05em",
+                marginRight: "var(--space-2)",
+              }}
+            >
+              Tracker
+            </div>
+
+            <nav className="header-nav" style={{ display: "flex", gap: "var(--space-2)" }}>
+              <Link href="/dashboard" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <Home size={16} /> <span className="desktop-only-inline">Início</span>
+              </Link>
+              <Link href="/dashboard/cards" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <CreditCard size={16} /> <span className="desktop-only-inline">Cartões</span>
+              </Link>
+              <Link href="/dashboard/invoices" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <FileText size={16} /> <span className="desktop-only-inline">Faturas</span>
+              </Link>
+              <Link href="/dashboard/subscriptions" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <Repeat size={16} /> <span className="desktop-only-inline">Assinaturas</span>
+              </Link>
+              <Link href="/dashboard/settings" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                <Settings size={16} /> <span className="desktop-only-inline">Configurações</span>
+              </Link>
+            </nav>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-6)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-bg-secondary)", border: "1px solid var(--color-border-subtle)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary)" }}>
+                <User size={16} />
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-tertiary)", lineHeight: 1 }}>
+                  Conectado como
+                </div>
+                <div style={{ fontSize: "var(--text-sm)", fontWeight: "600", color: "var(--color-text-primary)" }}>
+                  {user?.email?.split("@")[0]}
+                </div>
+              </div>
+            </div>
+            <div style={{ width: "1px", height: "24px", background: "var(--color-border-subtle)" }}></div>
+            <form action={logout}>
+              <button className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-text-secondary)" }} title="Sair">
+                <LogOut size={18} />
+              </button>
+            </form>
+          </div>
+        </header>
+      </div>
+
+      <main style={{ flex: 1, padding: "var(--space-8)" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
