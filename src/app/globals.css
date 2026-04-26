@@ -194,11 +194,13 @@ body {
   background: rgba(10, 10, 15, 0.75) !important;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   z-index: 1000;
 }
 
 [data-theme="light"] .glass-blur {
-  background: rgba(255, 255, 255, 0.75) !important;
+  background: rgba(255, 255, 255, 0.65) !important;
 }
 
 /* Remove the pseudo-element that was masking the effect */
@@ -704,10 +706,16 @@ body {
   left: 0;
   width: 100%;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 999;
   display: flex;
   align-items: flex-end;
+}
+
+[data-theme="light"] .mobile-menu-overlay {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .mobile-menu-content {

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { formatCurrency } from "@/lib/utils/currency";
+import { formatCategoryName } from "@/lib/utils/format";
 import { DeleteButton } from "./delete-button";
 import { ArrowDownRight, ArrowUpRight, Calendar, CreditCard, Tag, Search, FilterX } from "lucide-react";
 import type { Transaction } from "@/lib/actions/transactions";
@@ -37,7 +38,7 @@ export default function TransactionListClient({ initialTransactions }: { initial
       else {
         const searchText = `
           ${tx.description} 
-          ${tx.category?.name} 
+          ${formatCategoryName(tx.category?.name)} 
           ${tx.tags?.map(t => t.name).join(" ")} 
           ${tx.transaction_date}
         `.toLowerCase();
@@ -160,11 +161,11 @@ export default function TransactionListClient({ initialTransactions }: { initial
                       </td>
                       <td style={{ padding: "var(--space-4) var(--space-6)" }}>
                         <button 
-                          onClick={() => handleTagClick(tx.category?.name || "")}
+                          onClick={() => handleTagClick(formatCategoryName(tx.category?.name) || "")}
                           className={`badge badge-${isIncome ? "income" : "expense"}`} 
                           style={{ fontSize: "10px", cursor: "pointer" }}
                         >
-                          {tx.category?.name}
+                          {formatCategoryName(tx.category?.name)}
                         </button>
                       </td>
                       <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right", fontWeight: "600", color: isIncome ? "var(--color-income)" : "var(--color-text-primary)" }}>
@@ -208,11 +209,11 @@ export default function TransactionListClient({ initialTransactions }: { initial
                     {new Date(tx.transaction_date).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
                   </span>
                   <button 
-                    onClick={() => handleTagClick(tx.category?.name || "")}
+                    onClick={() => handleTagClick(formatCategoryName(tx.category?.name) || "")}
                     className={`badge badge-${isIncome ? "income" : "expense"}`} 
                     style={{ cursor: "pointer" }}
                   >
-                    {tx.category?.name}
+                    {formatCategoryName(tx.category?.name)}
                   </button>
                   {tx.installment_total && (
                     <span className="badge badge-neutral" style={{ display: "flex", alignItems: "center", gap: "2px" }}>

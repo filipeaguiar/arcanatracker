@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/lib/actions/auth";
 import { Home, CreditCard, FileText, Repeat, Settings, LogOut, User } from "lucide-react";
 import { MobileNav } from "./components/mobile-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default async function DashboardLayout({
   children,
@@ -78,6 +79,7 @@ export default async function DashboardLayout({
           </div>
           <div style={{ width: "1px", height: "24px", background: "var(--color-border-subtle)" }}></div>
           <div style={{ display: "flex", gap: "var(--space-1)" }}>
+            <ThemeToggle />
             <Link href="/dashboard/settings" className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-text-secondary)" }} title="Configurações">
               <Settings size={18} />
             </Link>

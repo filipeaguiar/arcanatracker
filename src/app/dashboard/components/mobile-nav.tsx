@@ -1,14 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CreditCard, FileText, Repeat, Menu, Settings, LogOut, User, X } from "lucide-react";
+import { Home, CreditCard, FileText, Repeat, Menu, Settings, LogOut, User, X, Moon, Sun } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
+import { useTheme } from "next-themes";
 
 export function MobileNav({ userEmail }: { userEmail?: string }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <>
@@ -54,6 +61,19 @@ export function MobileNav({ userEmail }: { userEmail?: string }) {
             </div>
 
             <div style={{ padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+              {mounted && (
+                <button 
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")} 
+                  className="btn btn-ghost" 
+                  style={{ width: "100%", justifyContent: "flex-start", padding: "var(--space-4)", fontSize: "16px" }}
+                >
+                  {theme === "dark" ? (
+                    <><Sun size={20} style={{ marginRight: "var(--space-3)" }} /> Modo Claro</>
+                  ) : (
+                    <><Moon size={20} style={{ marginRight: "var(--space-3)" }} /> Modo Escuro</>
+                  )}
+                </button>
+              )}
               <Link href="/dashboard/settings" onClick={() => setMenuOpen(false)} className="btn btn-ghost" style={{ justifyContent: "flex-start", padding: "var(--space-4)", fontSize: "16px" }}>
                 <Settings size={20} style={{ marginRight: "var(--space-3)" }} />
                 Configurações

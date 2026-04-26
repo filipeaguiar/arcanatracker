@@ -3,6 +3,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { getCategoryColor } from "@/lib/utils/category-colors";
 import { formatCurrency } from "@/lib/utils/currency";
+import { formatCategoryName } from "@/lib/utils/format";
 import type { CategoryBreakdown } from "@/lib/actions/analytics";
 
 interface CategoryDonutProps {
@@ -29,7 +30,7 @@ export default function CategoryDonut({ data, type, title }: CategoryDonutProps)
   }
 
   const chartData = filtered.map((d) => ({
-    name: d.name,
+    name: formatCategoryName(d.name),
     value: d.total_cents / 100,
     count: d.count,
     color: getCategoryColor(d.name),

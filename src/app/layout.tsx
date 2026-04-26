@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import { AppleSplashScreens } from "./AppleSplashScreens";
+import { ThemeProvider } from "./theme-provider";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -43,11 +44,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" data-theme="dark" className={outfit.variable}>
+    <html lang="pt-BR" suppressHydrationWarning className={outfit.variable}>
       <head>
         <AppleSplashScreens />
       </head>
-      <body className={outfit.className}>{children}</body>
+      <body className={outfit.className}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

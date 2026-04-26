@@ -46,7 +46,7 @@ export async function createCategory(
 
   const { data, error } = await supabase
     .from("categories")
-    .insert({ user_id: user.id, name: name.toLowerCase(), type })
+    .insert({ user_id: user.id, name: name.toLowerCase().replace(/\s+/g, '-'), type })
     .select()
     .single();
 
@@ -70,7 +70,7 @@ export async function findOrCreateCategory(
 
   if (!user) throw new Error("Unauthorized");
 
-  const normalizedName = name.toLowerCase();
+  const normalizedName = name.toLowerCase().replace(/\s+/g, '-');
 
   // Try to find existing
   const { data: existing } = await supabase
@@ -105,7 +105,7 @@ export async function updateCategory(
   if (!user) throw new Error("Unauthorized");
 
   const updateData: Record<string, string> = {};
-  if (data.name) updateData.name = data.name.toLowerCase();
+  if (data.name) updateData.name = data.name.toLowerCase().replace(/\s+/g, '-');
   if (data.type) updateData.type = data.type;
 
   const { data: updated, error } = await supabase

@@ -9,6 +9,7 @@ import {
   Category,
 } from "@/lib/actions/categories";
 import { getCategoryColor, getCategoryBgColor } from "@/lib/utils/category-colors";
+import { formatCategoryName } from "@/lib/utils/format";
 import { Settings, Plus, Pencil, Trash2, Check, X, Tag, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 export default function SettingsPage() {
@@ -34,7 +35,7 @@ export default function SettingsPage() {
 
   function startEditing(cat: Category) {
     setEditingId(cat.id);
-    setEditName(cat.name);
+    setEditName(formatCategoryName(cat.name));
     setEditType(cat.type);
   }
 
@@ -52,7 +53,7 @@ export default function SettingsPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Excluir a categoria "${name}"? Transações existentes ficarão sem categoria.`)) return;
+    if (!confirm(`Excluir a categoria "${formatCategoryName(name)}"? Transações existentes ficarão sem categoria.`)) return;
     startTransition(async () => {
       await deleteCategory(id);
       loadCategories();
@@ -284,7 +285,7 @@ function CategoryRow({
         }}
       />
       <span style={{ flex: 1, fontSize: "var(--text-sm)", fontWeight: "500" }}>
-        {category.name}
+        {formatCategoryName(category.name)}
       </span>
       <button onClick={onStartEdit} className="btn btn-ghost" style={{ padding: "var(--space-1)", opacity: 0.5 }} title="Editar">
         <Pencil size={14} />
