@@ -16,7 +16,7 @@ export default async function DashboardLayout({
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "var(--space-4) var(--space-8)", position: "sticky", top: 0, zIndex: 100 }}>
+      <div className="desktop-header" style={{ padding: "var(--space-4) var(--space-8)", position: "sticky", top: 0, zIndex: 100 }}>
         <header
           className="glass"
           style={{
@@ -96,7 +96,7 @@ export default async function DashboardLayout({
         </div>
       </main>
       {/* Mobile Bottom Navigation */}
-      <MobileNav />
+      <MobileNav userEmail={user?.email} />
     </div>
   );
 }

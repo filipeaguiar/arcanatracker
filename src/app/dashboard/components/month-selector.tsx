@@ -43,7 +43,7 @@ export default function MonthSelector({ year, month }: MonthSelectorProps) {
 
       {!isCurrentMonth && (
         <a href={`/dashboard${todayParams}`} className="btn btn-ghost" style={{ fontSize: "var(--text-xs)", display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
-          <Calendar size={14} /> Hoje
+          <Calendar size={14} /> <span className="desktop-only-inline">Hoje</span>
         </a>
       )}
     </div>
