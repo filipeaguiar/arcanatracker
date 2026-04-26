@@ -23,27 +23,6 @@ export default async function HomePage() {
         position: "relative",
       }}
     >
-      {/* Teste Frosted Glass — Movido para o final do main para garantir que fique por cima */}
-      <div 
-        className="glass-blur" 
-        style={{ 
-          position: "fixed", 
-          top: "50%", 
-          left: "50%", 
-          transform: "translate(-50%, -50%)", 
-          zIndex: 10000, 
-          padding: "var(--space-10)", 
-          borderRadius: "var(--radius-2xl)",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-          textAlign: "center",
-          border: "1px solid rgba(255,255,255,0.15)",
-          width: "320px",
-          color: "white"
-        }}
-      >
-        <h2 style={{ fontSize: "var(--text-2xl)", fontWeight: "800", marginBottom: "var(--space-2)" }}>Glass Test</h2>
-        <p style={{ opacity: 0.9 }}>Este elemento DEVE borrar os gradientes coloridos atrás dele.</p>
-      </div>
       <div className="animate-scale-in" style={{ maxWidth: "800px" }}>
         <div
           className="hero-title"

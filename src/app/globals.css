@@ -191,22 +191,19 @@ body {
 
 /* Glass Navigation — Frosted Glass Effect */
 .glass-blur {
-  position: relative;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--color-bg-secondary), transparent 10%) !important;
+  background: rgba(10, 10, 15, 0.75) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   z-index: 1000;
 }
 
+[data-theme="light"] .glass-blur {
+  background: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Remove the pseudo-element that was masking the effect */
 .glass-blur::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  z-index: -1;
+  display: none !important;
 }
 
 /* Glass card */
@@ -601,15 +598,25 @@ body {
   /* Charts Layout */
   .grid-cols-responsive {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-4);
+  }
+
+  .donut-layout {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: var(--space-6) !important;
+  }
+
+  .donut-legend {
+    width: 100%;
   }
 }
 
 @media (min-width: 1025px) {
   .grid-cols-responsive {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     gap: var(--space-8);
   }
 }

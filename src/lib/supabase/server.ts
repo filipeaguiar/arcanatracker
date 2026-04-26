@@ -14,9 +14,14 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
+            const rememberMe = cookieStore.get("remember_me")?.value;
+            cookiesToSet.forEach(({ name, value, options }) => {
+              if (rememberMe === "0") {
+                delete options.maxAge;
+                delete options.expires;
+              }
+              cookieStore.set(name, value, options);
+            });
           } catch {
             // setAll called from Server Component — ignore.
             // The middleware will handle cookie refresh.
@@ -44,9 +49,14 @@ export async function createAdminClient() {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
+            const rememberMe = cookieStore.get("remember_me")?.value;
+            cookiesToSet.forEach(({ name, value, options }) => {
+              if (rememberMe === "0") {
+                delete options.maxAge;
+                delete options.expires;
+              }
+              cookieStore.set(name, value, options);
+            });
           } catch {
             // Ignore in Server Components
           }

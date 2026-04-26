@@ -7,8 +7,8 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: {
-    default: "Tracker — Controle Financeiro",
-    template: "%s | Tracker",
+    default: "Arcana Tracker — Controle Financeiro",
+    template: "%s | Arcana Tracker",
   },
   description:
     "Sistema de controle financeiro pessoal com entrada rápida via DSL, suporte a cartões de crédito e faturas.",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Tracker",
+    title: "Arcana Tracker",
   },
   icons: {
     icon: [

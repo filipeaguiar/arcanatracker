@@ -2,9 +2,9 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Tracker Financial",
-    short_name: "Tracker",
-    description: "Personal financial control with low friction DSL input.",
+    name: "Arcana Tracker",
+    short_name: "Arcana Tracker",
+    description: "Personal financial control with arcane magic.",
     start_url: "/dashboard",
     display: "standalone",
     background_color: "#0a0a0a",
