@@ -10,7 +10,7 @@ import {
 } from "@/lib/actions/categories";
 import { getCategoryColor, getCategoryBgColor } from "@/lib/utils/category-colors";
 import { formatCategoryName } from "@/lib/utils/format";
-import { Settings, Plus, Pencil, Trash2, Check, X, Tag, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Settings, Plus, Pencil, Trash2, Check, X, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 export default function SettingsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
