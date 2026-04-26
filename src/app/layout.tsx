@@ -14,11 +14,13 @@ export const metadata: Metadata = {
   description:
     "Sistema de controle financeiro pessoal com entrada rápida via DSL, suporte a cartões de crédito e faturas.",
   keywords: ["finanças", "controle financeiro", "DSL", "tracker"],
+  applicationName: "Arcana Tracker",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Arcana Tracker",
   },
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
@@ -36,6 +38,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#0a0a0a",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
