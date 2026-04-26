@@ -21,8 +21,8 @@ export default function OfflinePage() {
       <p style={{ color: "var(--color-text-secondary)" }}>
         Parece que você perdeu a conexão com a internet. O Arcana Tracker precisa de internet para sincronizar seus dados.
       </p>
-      <button 
-        onClick={() => window.location.reload()}
+      <a 
+        href="/"
         style={{
           marginTop: "1rem",
           padding: "10px 20px",
@@ -31,10 +31,12 @@ export default function OfflinePage() {
           borderRadius: "8px",
           border: "none",
           fontWeight: "bold",
+          textDecoration: "none",
+          display: "inline-block",
         }}
       >
-        Tentar Novamente
-      </button>
+        Ir para o Início
+      </a>
     </div>
   );
 }
