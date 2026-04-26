@@ -87,7 +87,7 @@ export default function SettingsPage() {
         <h3 style={{ fontSize: "var(--text-lg)", fontWeight: "600", marginBottom: "var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           <Plus size={18} /> Nova Categoria
         </h3>
-        <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "flex-end" }}>
+        <div className="settings-form-inline">
           <div style={{ flex: 1 }}>
             <label className="badge badge-neutral" style={{ marginBottom: "var(--space-2)" }}>Nome</label>
             <input
@@ -123,7 +123,7 @@ export default function SettingsPage() {
           <p style={{ color: "var(--color-text-secondary)" }}>Carregando categorias...</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-8)", alignItems: "start" }}>
+        <div className="settings-categories-grid">
           {/* Despesas */}
           <div className="glass" style={{ overflow: "hidden" }}>
             <div style={{ padding: "var(--space-4) var(--space-6)", borderBottom: "1px solid var(--color-border-subtle)", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
@@ -223,13 +223,14 @@ function CategoryRow({
   if (isEditing) {
     return (
       <div
+        className="category-edit-row"
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--space-2)",
-          padding: "var(--space-3) var(--space-6)",
-          borderBottom: "1px solid var(--color-border-subtle)",
-          background: "rgba(99, 102, 241, 0.05)",
+        display: "flex",
+        alignItems: "center",
+        gap: "var(--space-2)",
+        padding: "var(--space-3) var(--space-6)",
+        borderBottom: "1px solid var(--color-border-subtle)",
+        background: "rgba(99, 102, 241, 0.05)",
         }}
       >
         <input

@@ -90,7 +90,7 @@ export default async function DashboardLayout({
         </header>
       </div>
 
-      <main style={{ flex: 1, padding: "var(--space-8)" }}>
+      <main className="dashboard-main" style={{ flex: 1, padding: "var(--space-8)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           {children}
         </div>

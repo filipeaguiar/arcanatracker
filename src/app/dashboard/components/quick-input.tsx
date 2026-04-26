@@ -55,7 +55,7 @@ export default function QuickInput() {
         <h2 style={{ fontSize: "var(--text-lg)", fontWeight: "600", marginBottom: "var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
           <Zap size={20} color="var(--color-brand-400)" /> Entrada Rápida
         </h2>
-        <form onSubmit={handleSubmit} style={{ position: "relative" }}>
+        <form onSubmit={handleSubmit} className="quick-input-form" style={{ position: "relative" }}>
           <input
             ref={inputRef}
             type="text"
@@ -74,7 +74,7 @@ export default function QuickInput() {
           />
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-primary quick-input-btn"
             disabled={loading || !input.trim()}
             style={{
               position: "absolute",

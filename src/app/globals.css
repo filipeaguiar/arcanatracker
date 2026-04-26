@@ -491,7 +491,12 @@ body {
 .form-grid-responsive {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+}
+
+.form-grid-responsive > button {
+  width: 100%;
+  margin-top: var(--space-2);
 }
 
 @media (min-width: 768px) {
@@ -499,6 +504,12 @@ body {
     display: grid;
     grid-template-columns: 1fr 120px 180px 120px 140px auto;
     align-items: flex-end;
+    gap: var(--space-3);
+  }
+
+  .form-grid-responsive > button {
+    width: auto;
+    margin-top: 0;
   }
 }
 
@@ -513,10 +524,72 @@ body {
   .header-nav {
     display: none !important;
   }
-  
-  /* Add padding to bottom of main container so content doesn't get hidden behind bottom nav */
-  main {
-    padding-bottom: calc(var(--space-8) + 80px) !important;
+
+  /* Reduce padding on small screens */
+  .dashboard-main {
+    padding: var(--space-4) !important;
+    padding-bottom: calc(var(--space-4) + 80px) !important;
+  }
+
+  /* Header wrapper: less horizontal padding */
+  .dashboard-main + .mobile-bottom-nav,
+  div:has(> header.glass) {
+    padding-left: var(--space-3) !important;
+    padding-right: var(--space-3) !important;
+  }
+
+  /* Header: compact padding */
+  header.glass {
+    padding: var(--space-3) var(--space-4) !important;
+  }
+
+  /* Dashboard page header: stack title + month selector */
+  .dashboard-page-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: var(--space-3);
+  }
+
+  /* Summary cards: smaller minmax for narrow screens */
+  .summary-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Charts grid: already handled by .grid-cols-responsive */
+
+  /* Category donut: stack chart + legend vertically */
+  .donut-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Subscription header: stack title + cost */
+  .sub-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: var(--space-2);
+  }
+
+  .sub-header > div:last-child {
+    text-align: left;
+  }
+
+  /* Landing page: cap font size */
+  .hero-title {
+    font-size: var(--text-4xl) !important;
+  }
+
+  .hero-subtitle {
+    font-size: var(--text-lg) !important;
+  }
+
+  .hero-description {
+    font-size: var(--text-base) !important;
+  }
+
+  /* Landing page features: ensure single column on very narrow */
+  .features-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -684,5 +757,94 @@ body {
   .invoices-grid {
     grid-template-columns: 1fr;
     gap: var(--space-4);
+  }
+}
+
+/* Cards page: sidebar + content */
+.cards-page-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-10);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .cards-page-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+
+/* Settings: two-column categories */
+.settings-categories-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .settings-categories-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+
+/* Settings: inline form (name + type + button) */
+.settings-form-inline {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+@media (max-width: 767px) {
+  .settings-form-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-form-inline > div {
+    width: 100%;
+  }
+
+  .settings-form-inline > div > select {
+    width: 100%;
+    min-width: unset !important;
+  }
+
+  .settings-form-inline > button {
+    width: 100%;
+  }
+}
+
+/* Settings: category edit row */
+@media (max-width: 767px) {
+  .category-edit-row {
+    flex-wrap: wrap;
+  }
+
+  .category-edit-row > input {
+    flex: 1 1 100% !important;
+  }
+}
+
+/* Quick Input mobile adjustments */
+@media (max-width: 767px) {
+  .quick-input-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    position: relative;
+  }
+
+  .quick-input-form > input {
+    padding-right: var(--space-4) !important;
+  }
+
+  .quick-input-form > .quick-input-btn {
+    position: static !important;
+    width: 100%;
+    border-radius: var(--radius-lg) !important;
+    padding: var(--space-3) var(--space-6) !important;
   }
 }

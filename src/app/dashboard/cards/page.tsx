@@ -18,7 +18,7 @@ export default function CardsPage() {
         </p>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "var(--space-10)", alignItems: "start" }}>
+      <div className="cards-page-grid">
         <aside>
           <CardForm onCreated={() => setRefreshKey(prev => prev + 1)} />
         </aside>

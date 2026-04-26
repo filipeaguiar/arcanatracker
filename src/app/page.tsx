@@ -20,6 +20,7 @@ export default async function HomePage() {
     >
       <div className="animate-scale-in" style={{ maxWidth: "800px" }}>
         <div
+          className="hero-title"
           style={{
             fontSize: "var(--text-6xl)",
             fontWeight: "900",
@@ -32,11 +33,11 @@ export default async function HomePage() {
         >
           Tracker
         </div>
-        <h2 style={{ fontSize: "var(--text-2xl)", fontWeight: "600", marginBottom: "var(--space-8)", color: "var(--color-text-secondary)" }}>
+        <h2 className="hero-subtitle" style={{ fontSize: "var(--text-2xl)", fontWeight: "600", marginBottom: "var(--space-8)", color: "var(--color-text-secondary)" }}>
           O controle financeiro que não atrapalha sua vida.
         </h2>
         
-        <p style={{ fontSize: "var(--text-lg)", marginBottom: "var(--space-12)", lineHeight: "1.6", color: "var(--color-text-tertiary)" }}>
+        <p className="hero-description" style={{ fontSize: "var(--text-lg)", marginBottom: "var(--space-12)", lineHeight: "1.6", color: "var(--color-text-tertiary)" }}>
           Lançamentos em segundos via linguagem natural. <br/>
           Inteligente, rápido e totalmente focado em baixa fricção.
         </p>
@@ -59,7 +60,7 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div style={{ marginTop: "var(--space-20)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "var(--space-12)", width: "100%", maxWidth: "1000px" }}>
+      <div className="features-grid" style={{ marginTop: "var(--space-20)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "var(--space-12)", width: "100%", maxWidth: "1000px" }}>
         {[
           { title: "Ultra Rápido", desc: "Digite '50 cafe' e pronto. O Tracker faz o resto." },
           { title: "Parcelamentos", desc: "Lide com faturas brasileiras e parcelas de forma nativa." },

@@ -41,7 +41,7 @@ export default function CategoryDonut({ data, type, title }: CategoryDonutProps)
         {title}
       </h4>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+      <div className="donut-layout" style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
         {/* Chart */}
         <div style={{ width: "160px", height: "160px", position: "relative", flexShrink: 0 }}>
           <ResponsiveContainer width="100%" height="100%">

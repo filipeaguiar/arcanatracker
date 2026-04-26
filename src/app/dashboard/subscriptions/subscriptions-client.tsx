@@ -100,7 +100,7 @@ export default function SubscriptionsClient({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-8)" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+      <header className="sub-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
         <div>
           <h1 style={{ fontSize: "var(--text-3xl)", fontWeight: "800", letterSpacing: "-0.03em", display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
             <Repeat size={28} /> Assinaturas
