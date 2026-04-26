@@ -79,6 +79,7 @@
   --color-bg-secondary: #12121a;
   --color-bg-tertiary: #1a1a28;
   --color-bg-elevated: #222236;
+  --color-surface: var(--color-bg-secondary);
 
   /* Glassmorphism surfaces */
   --color-glass: rgba(255, 255, 255, 0.04);
@@ -143,6 +144,7 @@
   --color-bg-secondary: #ffffff;
   --color-bg-tertiary: #f5f5f5;
   --color-bg-elevated: #ffffff;
+  --color-surface: var(--color-bg-secondary);
 
   --color-glass: rgba(255, 255, 255, 0.7);
   --color-glass-border: rgba(0, 0, 0, 0.08);
@@ -766,4 +768,20 @@ body {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* --- Login Page Styles --- */
+@media (min-width: 1024px) {
+  .login-hero-section {
+    display: block !important;
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--color-surface) inset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
