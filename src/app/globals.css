@@ -478,13 +478,13 @@ body {
 
 .grid-cols-responsive {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
 }
 
 @media (min-width: 768px) {
   .grid-cols-responsive {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -565,6 +565,12 @@ body {
   .donut-layout {
     flex-direction: column;
     align-items: center;
+    width: 100%;
+  }
+
+  .donut-legend {
+    width: 100%;
+    margin-top: var(--space-4);
   }
 
   /* Subscription header: stack title + cost */

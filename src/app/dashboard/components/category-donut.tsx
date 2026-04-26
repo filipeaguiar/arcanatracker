@@ -86,7 +86,7 @@ export default function CategoryDonut({ data, type, title }: CategoryDonutProps)
         </div>
 
         {/* Legenda */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", flex: 1, overflow: "hidden" }}>
+        <div className="donut-legend" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", overflow: "hidden" }}>
           {chartData.slice(0, 6).map((entry) => {
             const pct = ((entry.value / (total / 100)) * 100).toFixed(0);
             return (
