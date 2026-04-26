@@ -51,7 +51,7 @@ export default function InvoicesPage() {
         </p>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 3fr", gap: "var(--space-8)", alignItems: "start" }}>
+      <div className="invoices-grid">
         <aside style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
           {/* Card Selection */}
           <div className="glass" style={{ padding: "var(--space-4)" }}>
@@ -115,33 +115,57 @@ export default function InvoicesPage() {
                 </div>
               </div>
 
-              {/* Transaction Table */}
+              {/* Transaction Table — Desktop */}
               <div className="glass" style={{ overflow: "hidden" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ textAlign: "left", fontSize: "var(--text-xs)", textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.05em" }}>
-                      <th style={{ padding: "var(--space-4) var(--space-6)" }}>Data</th>
-                      <th style={{ padding: "var(--space-4) var(--space-6)" }}>Descrição</th>
-                      <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedInvoice.transactions.map(tx => (
-                      <tr key={tx.id} style={{ borderTop: "1px solid var(--color-border-subtle)" }}>
-                        <td style={{ padding: "var(--space-4) var(--space-6)", fontSize: "var(--text-sm)" }}>
-                          {new Date(tx.transaction_date).toLocaleDateString("pt-BR")}
-                        </td>
-                        <td style={{ padding: "var(--space-4) var(--space-6)" }}>
-                          <div style={{ fontSize: "var(--text-sm)", fontWeight: "500" }}>{tx.description}</div>
-                          <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-secondary)" }}>{tx.category?.name}</div>
-                        </td>
-                        <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right", fontWeight: "600" }}>
-                          {formatCurrency(tx.amount_cents)}
-                        </td>
+                <div className="tx-table">
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ textAlign: "left", fontSize: "var(--text-xs)", textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.05em" }}>
+                        <th style={{ padding: "var(--space-4) var(--space-6)" }}>Data</th>
+                        <th style={{ padding: "var(--space-4) var(--space-6)" }}>Descrição</th>
+                        <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Valor</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {selectedInvoice.transactions.map(tx => (
+                        <tr key={tx.id} style={{ borderTop: "1px solid var(--color-border-subtle)" }}>
+                          <td style={{ padding: "var(--space-4) var(--space-6)", fontSize: "var(--text-sm)" }}>
+                            {new Date(tx.transaction_date).toLocaleDateString("pt-BR")}
+                          </td>
+                          <td style={{ padding: "var(--space-4) var(--space-6)" }}>
+                            <div style={{ fontSize: "var(--text-sm)", fontWeight: "500" }}>{tx.description}</div>
+                            <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-secondary)" }}>{tx.category?.name}</div>
+                          </td>
+                          <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right", fontWeight: "600" }}>
+                            {formatCurrency(tx.amount_cents)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Cards de Transações da Fatura — Mobile */}
+                <div className="tx-card-list">
+                  {selectedInvoice.transactions.map(tx => (
+                    <div key={tx.id} className="tx-card">
+                      <div className="tx-card-top">
+                        <div className="tx-card-desc">
+                          <span>{tx.description}</span>
+                        </div>
+                        <div className="tx-card-amount">
+                          {formatCurrency(tx.amount_cents)}
+                        </div>
+                      </div>
+                      <div className="tx-card-meta">
+                        <span>{new Date(tx.transaction_date).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}</span>
+                        {tx.category?.name && (
+                          <span className="badge badge-expense">{tx.category.name}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (

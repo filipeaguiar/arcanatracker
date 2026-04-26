@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/lib/actions/auth";
 import { Home, CreditCard, FileText, Repeat, Settings, LogOut, User } from "lucide-react";
+import { MobileNav } from "./components/mobile-nav";
 
 export default async function DashboardLayout({
   children,
@@ -57,18 +58,15 @@ export default async function DashboardLayout({
               <Link href="/dashboard/subscriptions" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
                 <Repeat size={16} /> <span className="desktop-only-inline">Assinaturas</span>
               </Link>
-              <Link href="/dashboard/settings" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                <Settings size={16} /> <span className="desktop-only-inline">Configurações</span>
-              </Link>
             </nav>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-6)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-bg-secondary)", border: "1px solid var(--color-border-subtle)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary)" }}>
+              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-bg-secondary)", border: "1px solid var(--color-border-subtle)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary)", flexShrink: 0 }}>
                 <User size={16} />
               </div>
-              <div style={{ textAlign: "left" }}>
+              <div className="desktop-only" style={{ textAlign: "left" }}>
                 <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-tertiary)", lineHeight: 1 }}>
                   Conectado como
                 </div>
@@ -78,11 +76,16 @@ export default async function DashboardLayout({
               </div>
             </div>
             <div style={{ width: "1px", height: "24px", background: "var(--color-border-subtle)" }}></div>
-            <form action={logout}>
-              <button className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-text-secondary)" }} title="Sair">
-                <LogOut size={18} />
-              </button>
-            </form>
+            <div style={{ display: "flex", gap: "var(--space-1)" }}>
+              <Link href="/dashboard/settings" className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-text-secondary)" }} title="Configurações">
+                <Settings size={18} />
+              </Link>
+              <form action={logout}>
+                <button className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-text-secondary)" }} title="Sair">
+                  <LogOut size={18} />
+                </button>
+              </form>
+            </div>
           </div>
         </header>
       </div>
@@ -92,6 +95,8 @@ export default async function DashboardLayout({
           {children}
         </div>
       </main>
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
     </div>
   );
 }

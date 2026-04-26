@@ -164,90 +164,162 @@ export default function SubscriptionsClient({
           </h3>
         </div>
         
-        <div className="table-responsive">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ textAlign: "left", fontSize: "var(--text-xs)", textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.05em" }}>
-                <th style={{ padding: "var(--space-4) var(--space-6)" }}>Status</th>
-                <th style={{ padding: "var(--space-4) var(--space-6)" }}>Nome</th>
-                <th style={{ padding: "var(--space-4) var(--space-6)" }}>Categoria</th>
-                <th style={{ padding: "var(--space-4) var(--space-6)" }}>Data Base</th>
-                <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Valor</th>
-                <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subscriptions.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ padding: "var(--space-10)", textAlign: "center", color: "var(--color-text-tertiary)" }}>
-                    Nenhuma assinatura cadastrada.
-                  </td>
+        {/* Tabela — Desktop */}
+        <div className="tx-table">
+          <div className="table-responsive">
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ textAlign: "left", fontSize: "var(--text-xs)", textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.05em" }}>
+                  <th style={{ padding: "var(--space-4) var(--space-6)" }}>Status</th>
+                  <th style={{ padding: "var(--space-4) var(--space-6)" }}>Nome</th>
+                  <th style={{ padding: "var(--space-4) var(--space-6)" }}>Categoria</th>
+                  <th style={{ padding: "var(--space-4) var(--space-6)" }}>Data Base</th>
+                  <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Valor</th>
+                  <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Ações</th>
                 </tr>
-              ) : (
-                subscriptions.map((sub) => {
-                  const isIncome = sub.type === "income";
-                  const isEditing = editingId === sub.id;
-                  const isPaused = sub.status === "paused";
+              </thead>
+              <tbody>
+                {subscriptions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ padding: "var(--space-10)", textAlign: "center", color: "var(--color-text-tertiary)" }}>
+                      Nenhuma assinatura cadastrada.
+                    </td>
+                  </tr>
+                ) : (
+                  subscriptions.map((sub) => {
+                    const isIncome = sub.type === "income";
+                    const isEditing = editingId === sub.id;
+                    const isPaused = sub.status === "paused";
 
-                  if (isEditing) {
+                    if (isEditing) {
+                      return (
+                        <tr key={sub.id} style={{ background: "rgba(99, 102, 241, 0.05)", borderTop: "1px solid var(--color-border-subtle)" }}>
+                          <td colSpan={6} style={{ padding: "var(--space-3) var(--space-6)" }}>
+                            <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center" }}>
+                              <input className="input" value={editName} onChange={e => setEditName(e.target.value)} style={{ flex: 1 }} />
+                              <input className="input" type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} style={{ width: "120px" }} />
+                              <button onClick={() => handleSaveEdit(sub.id)} className="btn btn-ghost" style={{ color: "var(--color-income)" }}><Check size={16} /></button>
+                              <button onClick={() => setEditingId(null)} className="btn btn-ghost"><X size={16} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+
                     return (
-                      <tr key={sub.id} style={{ background: "rgba(99, 102, 241, 0.05)", borderTop: "1px solid var(--color-border-subtle)" }}>
-                        <td colSpan={6} style={{ padding: "var(--space-3) var(--space-6)" }}>
-                          <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center" }}>
-                            <input className="input" value={editName} onChange={e => setEditName(e.target.value)} style={{ flex: 1 }} />
-                            <input className="input" type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} style={{ width: "120px" }} />
-                            <button onClick={() => handleSaveEdit(sub.id)} className="btn btn-ghost" style={{ color: "var(--color-income)" }}><Check size={16} /></button>
-                            <button onClick={() => setEditingId(null)} className="btn btn-ghost"><X size={16} /></button>
+                      <tr key={sub.id} className="hover-row" style={{ borderTop: "1px solid var(--color-border-subtle)", opacity: isPaused ? 0.5 : 1 }}>
+                        <td style={{ padding: "var(--space-4) var(--space-6)" }}>
+                          <button 
+                            onClick={() => handleToggleStatus(sub)} 
+                            className={`badge badge-${isPaused ? 'neutral' : (isIncome ? 'income' : 'expense')}`}
+                            style={{ cursor: "pointer" }}
+                            disabled={isPending}
+                            title={isPaused ? "Reativar" : "Pausar"}
+                          >
+                            {isPaused ? <Play size={12} /> : <Pause size={12} />}
+                            {isPaused ? "Pausada" : "Ativa"}
+                          </button>
+                        </td>
+                        <td style={{ padding: "var(--space-4) var(--space-6)", fontWeight: "500" }}>
+                          {sub.name}
+                        </td>
+                        <td style={{ padding: "var(--space-4) var(--space-6)" }}>
+                          <span className={`badge badge-neutral`} style={{ borderLeft: `2px solid ${getCategoryColor(sub.category?.name || '')}` }}>
+                            {sub.category?.name}
+                          </span>
+                        </td>
+                        <td style={{ padding: "var(--space-4) var(--space-6)", fontSize: "var(--text-sm)", color: "var(--color-text-secondary)" }}>
+                          Dia {new Date(sub.start_date + "T12:00:00").getDate()}
+                        </td>
+                        <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right", fontWeight: "600", color: isIncome ? "var(--color-income)" : "var(--color-expense)" }}>
+                          {isIncome ? "+" : "-"}{formatCurrency(sub.amount_cents)}
+                        </td>
+                        <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>
+                          <div style={{ display: "flex", gap: "var(--space-1)", justifyContent: "flex-end" }}>
+                            <button onClick={() => startEditing(sub)} className="btn btn-ghost" style={{ padding: "var(--space-2)" }} disabled={isPending}>
+                              <Pencil size={14} />
+                            </button>
+                            <button onClick={() => handleDelete(sub.id, sub.name)} className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-expense)" }} disabled={isPending}>
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </td>
                       </tr>
                     );
-                  }
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-                  return (
-                    <tr key={sub.id} className="hover-row" style={{ borderTop: "1px solid var(--color-border-subtle)", opacity: isPaused ? 0.5 : 1 }}>
-                      <td style={{ padding: "var(--space-4) var(--space-6)" }}>
-                        <button 
-                          onClick={() => handleToggleStatus(sub)} 
-                          className={`badge badge-${isPaused ? 'neutral' : (isIncome ? 'income' : 'expense')}`}
-                          style={{ cursor: "pointer" }}
-                          disabled={isPending}
-                          title={isPaused ? "Reativar" : "Pausar"}
-                        >
-                          {isPaused ? <Play size={12} /> : <Pause size={12} />}
-                          {isPaused ? "Pausada" : "Ativa"}
-                        </button>
-                      </td>
-                      <td style={{ padding: "var(--space-4) var(--space-6)", fontWeight: "500" }}>
-                        {sub.name}
-                      </td>
-                      <td style={{ padding: "var(--space-4) var(--space-6)" }}>
-                        <span className={`badge badge-neutral`} style={{ borderLeft: `2px solid ${getCategoryColor(sub.category?.name || '')}` }}>
-                          {sub.category?.name}
-                        </span>
-                      </td>
-                      <td style={{ padding: "var(--space-4) var(--space-6)", fontSize: "var(--text-sm)", color: "var(--color-text-secondary)" }}>
-                        Dia {new Date(sub.start_date + "T12:00:00").getDate()}
-                      </td>
-                      <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right", fontWeight: "600", color: isIncome ? "var(--color-income)" : "var(--color-expense)" }}>
-                        {isIncome ? "+" : "-"}{formatCurrency(sub.amount_cents)}
-                      </td>
-                      <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>
-                        <div style={{ display: "flex", gap: "var(--space-1)", justifyContent: "flex-end" }}>
-                          <button onClick={() => startEditing(sub)} className="btn btn-ghost" style={{ padding: "var(--space-2)" }} disabled={isPending}>
-                            <Pencil size={14} />
-                          </button>
-                          <button onClick={() => handleDelete(sub.id, sub.name)} className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-expense)" }} disabled={isPending}>
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+        {/* Cards de Assinaturas — Mobile */}
+        <div className="tx-card-list">
+          {subscriptions.length === 0 ? (
+            <div style={{ padding: "var(--space-10)", textAlign: "center", color: "var(--color-text-tertiary)" }}>
+              Nenhuma assinatura cadastrada.
+            </div>
+          ) : (
+            subscriptions.map((sub) => {
+              const isIncome = sub.type === "income";
+              const isEditing = editingId === sub.id;
+              const isPaused = sub.status === "paused";
+
+              if (isEditing) {
+                return (
+                  <div key={sub.id} className="tx-card" style={{ background: "rgba(99, 102, 241, 0.05)" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                      <input className="input" value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome" />
+                      <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "center" }}>
+                        <input className="input" type="number" step="0.01" value={editAmount} onChange={e => setEditAmount(e.target.value)} placeholder="Valor" style={{ flex: 1 }} />
+                        <button onClick={() => handleSaveEdit(sub.id)} className="btn btn-ghost" style={{ color: "var(--color-income)", padding: "var(--space-2)" }}><Check size={18} /></button>
+                        <button onClick={() => setEditingId(null)} className="btn btn-ghost" style={{ padding: "var(--space-2)" }}><X size={18} /></button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={sub.id} className="tx-card" style={{ opacity: isPaused ? 0.5 : 1 }}>
+                  <div className="tx-card-top">
+                    <div className="tx-card-desc">
+                      <span>{sub.name}</span>
+                    </div>
+                    <div className="tx-card-amount" style={{ color: isIncome ? "var(--color-income)" : "var(--color-expense)" }}>
+                      {isIncome ? "+" : "-"}{formatCurrency(sub.amount_cents)}
+                    </div>
+                  </div>
+                  <div className="tx-card-meta">
+                    <button 
+                      onClick={() => handleToggleStatus(sub)} 
+                      className={`badge badge-${isPaused ? 'neutral' : (isIncome ? 'income' : 'expense')}`}
+                      style={{ cursor: "pointer" }}
+                      disabled={isPending}
+                    >
+                      {isPaused ? <Play size={10} /> : <Pause size={10} />}
+                      {isPaused ? "Pausada" : "Ativa"}
+                    </button>
+                    <span className="badge badge-neutral" style={{ borderLeft: `2px solid ${getCategoryColor(sub.category?.name || '')}` }}>
+                      {sub.category?.name}
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                      <CalendarDays size={12} />
+                      Dia {new Date(sub.start_date + "T12:00:00").getDate()}
+                    </span>
+                    <div className="tx-card-actions">
+                      <button onClick={() => startEditing(sub)} className="btn btn-ghost" style={{ padding: "var(--space-2)" }} disabled={isPending}>
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={() => handleDelete(sub.id, sub.name)} className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-expense)" }} disabled={isPending}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

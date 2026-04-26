@@ -508,15 +508,181 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Header Adjustments */
+/* --- Mobile Layout Adjustments --- */
 @media (max-width: 767px) {
   .header-nav {
-    overflow-x: auto;
-    padding-bottom: var(--space-2);
-    -webkit-overflow-scrolling: touch;
+    display: none !important;
   }
   
-  .header-nav::-webkit-scrollbar {
-    display: none;
+  /* Add padding to bottom of main container so content doesn't get hidden behind bottom nav */
+  main {
+    padding-bottom: calc(var(--space-8) + 80px) !important;
+  }
+}
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(70px + env(safe-area-inset-bottom, 0px));
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--color-glass-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  padding: 0 var(--space-2);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mobile-bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  flex: 1;
+  height: 100%;
+  transition: all var(--transition-fast);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+}
+
+.mobile-bottom-nav a:hover,
+.mobile-bottom-nav a:active,
+.mobile-bottom-nav a.active {
+  color: var(--color-brand-400);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .mobile-bottom-nav a:hover,
+[data-theme="light"] .mobile-bottom-nav a:active,
+[data-theme="light"] .mobile-bottom-nav a.active {
+  color: var(--color-brand-600);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   Mobile Card List — replaces tables on mobile
+   ============================================ */
+
+/* Desktop: show table, hide cards */
+.tx-table {
+  display: block;
+}
+.tx-card-list {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  /* Mobile: hide table, show cards */
+  .tx-table {
+    display: none !important;
+  }
+  .tx-card-list {
+    display: flex !important;
+    flex-direction: column;
+  }
+}
+
+/* Individual card */
+.tx-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.tx-card:last-child {
+  border-bottom: none;
+}
+
+.tx-card:active {
+  background: var(--color-glass-hover);
+}
+
+/* Card top row: icon + description left, amount right */
+.tx-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.tx-card-desc {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  min-width: 0;
+  flex: 1;
+}
+
+.tx-card-desc span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tx-card-amount {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Card bottom row: metadata chips + action buttons */
+.tx-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.tx-card-meta .badge {
+  font-size: 10px;
+}
+
+.tx-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Responsive grid for invoices page */
+.invoices-grid {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .invoices-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
   }
 }

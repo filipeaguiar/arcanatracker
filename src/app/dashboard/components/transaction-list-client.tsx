@@ -101,83 +101,144 @@ export default function TransactionListClient({ initialTransactions }: { initial
         )}
       </div>
 
-      {/* Tabela de Transações */}
-      <div className="table-responsive">
-        <table style={{ width: "100%", borderCollapse: "collapse", whiteSpace: "nowrap" }}>
-          <thead>
-            <tr style={{ textAlign: "left", fontSize: "var(--text-xs)", textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.05em" }}>
-              <th style={{ padding: "var(--space-4) var(--space-6)" }}>Data</th>
-              <th style={{ padding: "var(--space-4) var(--space-6)" }}>Descrição</th>
-              <th style={{ padding: "var(--space-4) var(--space-6)" }}>Categoria</th>
-              <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Valor</th>
-              <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.length === 0 ? (
-              <tr>
-                <td colSpan={5} style={{ padding: "var(--space-10)", textAlign: "center", color: "var(--color-text-secondary)" }}>
-                  Nenhum lançamento corresponde ao filtro.
-                </td>
+      {/* Tabela de Transações — Desktop */}
+      <div className="tx-table">
+        <div className="table-responsive">
+          <table style={{ width: "100%", borderCollapse: "collapse", whiteSpace: "nowrap" }}>
+            <thead>
+              <tr style={{ textAlign: "left", fontSize: "var(--text-xs)", textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.05em" }}>
+                <th style={{ padding: "var(--space-4) var(--space-6)" }}>Data</th>
+                <th style={{ padding: "var(--space-4) var(--space-6)" }}>Descrição</th>
+                <th style={{ padding: "var(--space-4) var(--space-6)" }}>Categoria</th>
+                <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Valor</th>
+                <th style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>Ações</th>
               </tr>
-            ) : (
-              filteredTransactions.map((tx) => {
-                const isIncome = tx.category?.type === "income";
-                return (
-                  <tr key={tx.id} style={{ borderTop: "1px solid var(--color-border-subtle)", transition: "background 0.2s" }} className="hover-row">
-                    <td style={{ padding: "var(--space-4) var(--space-6)", fontSize: "var(--text-sm)", color: "var(--color-text-secondary)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                        <Calendar size={14} />
-                        {new Date(tx.transaction_date).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
-                      </div>
-                    </td>
-                    <td style={{ padding: "var(--space-4) var(--space-6)" }}>
-                      <div style={{ fontSize: "var(--text-sm)", fontWeight: "500", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-                        {isIncome ? <ArrowUpRight size={16} color="var(--color-income)" /> : <ArrowDownRight size={16} color="var(--color-expense)" />}
-                        {tx.description}
-                      </div>
-                      
-                      <div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-2)", flexWrap: "wrap" }}>
-                        {tx.installment_total && (
-                          <div style={{ fontSize: "11px", color: "var(--color-text-tertiary)", display: "flex", alignItems: "center", gap: "4px" }}>
-                            <CreditCard size={12} />
-                            Parcela {tx.installment_current}/{tx.installment_total}
-                          </div>
-                        )}
-                        {tx.tags?.map((tag) => (
-                          <button 
-                            key={tag.id} 
-                            onClick={() => handleTagClick(tag.name)}
-                            style={{ cursor: "pointer", border: "1px solid var(--color-border-subtle)" }}
-                            className="badge badge-neutral"
-                          >
-                            <Tag size={10} />
-                            {tag.name}
-                          </button>
-                        ))}
-                      </div>
-                    </td>
-                    <td style={{ padding: "var(--space-4) var(--space-6)" }}>
-                      <button 
-                        onClick={() => handleTagClick(tx.category?.name || "")}
-                        className={`badge badge-${isIncome ? "income" : "expense"}`} 
-                        style={{ fontSize: "10px", cursor: "pointer" }}
-                      >
-                        {tx.category?.name}
-                      </button>
-                    </td>
-                    <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right", fontWeight: "600", color: isIncome ? "var(--color-income)" : "var(--color-text-primary)" }}>
-                      {formatCurrency(tx.amount_cents)}
-                    </td>
-                    <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>
-                      <DeleteButton id={tx.id} />
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: "var(--space-10)", textAlign: "center", color: "var(--color-text-secondary)" }}>
+                    Nenhum lançamento corresponde ao filtro.
+                  </td>
+                </tr>
+              ) : (
+                filteredTransactions.map((tx) => {
+                  const isIncome = tx.category?.type === "income";
+                  return (
+                    <tr key={tx.id} style={{ borderTop: "1px solid var(--color-border-subtle)", transition: "background 0.2s" }} className="hover-row">
+                      <td style={{ padding: "var(--space-4) var(--space-6)", fontSize: "var(--text-sm)", color: "var(--color-text-secondary)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                          <Calendar size={14} />
+                          {new Date(tx.transaction_date).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
+                        </div>
+                      </td>
+                      <td style={{ padding: "var(--space-4) var(--space-6)" }}>
+                        <div style={{ fontSize: "var(--text-sm)", fontWeight: "500", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                          {isIncome ? <ArrowUpRight size={16} color="var(--color-income)" /> : <ArrowDownRight size={16} color="var(--color-expense)" />}
+                          {tx.description}
+                        </div>
+                        
+                        <div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-2)", flexWrap: "wrap" }}>
+                          {tx.installment_total && (
+                            <div style={{ fontSize: "11px", color: "var(--color-text-tertiary)", display: "flex", alignItems: "center", gap: "4px" }}>
+                              <CreditCard size={12} />
+                              Parcela {tx.installment_current}/{tx.installment_total}
+                            </div>
+                          )}
+                          {tx.tags?.map((tag) => (
+                            <button 
+                              key={tag.id} 
+                              onClick={() => handleTagClick(tag.name)}
+                              style={{ cursor: "pointer", border: "1px solid var(--color-border-subtle)" }}
+                              className="badge badge-neutral"
+                            >
+                              <Tag size={10} />
+                              {tag.name}
+                            </button>
+                          ))}
+                        </div>
+                      </td>
+                      <td style={{ padding: "var(--space-4) var(--space-6)" }}>
+                        <button 
+                          onClick={() => handleTagClick(tx.category?.name || "")}
+                          className={`badge badge-${isIncome ? "income" : "expense"}`} 
+                          style={{ fontSize: "10px", cursor: "pointer" }}
+                        >
+                          {tx.category?.name}
+                        </button>
+                      </td>
+                      <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right", fontWeight: "600", color: isIncome ? "var(--color-income)" : "var(--color-text-primary)" }}>
+                        {formatCurrency(tx.amount_cents)}
+                      </td>
+                      <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>
+                        <DeleteButton id={tx.id} />
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Cards de Transações — Mobile */}
+      <div className="tx-card-list">
+        {filteredTransactions.length === 0 ? (
+          <div style={{ padding: "var(--space-10)", textAlign: "center", color: "var(--color-text-secondary)" }}>
+            Nenhum lançamento corresponde ao filtro.
+          </div>
+        ) : (
+          filteredTransactions.map((tx) => {
+            const isIncome = tx.category?.type === "income";
+            return (
+              <div key={tx.id} className="tx-card">
+                <div className="tx-card-top">
+                  <div className="tx-card-desc">
+                    {isIncome ? <ArrowUpRight size={16} color="var(--color-income)" style={{ flexShrink: 0 }} /> : <ArrowDownRight size={16} color="var(--color-expense)" style={{ flexShrink: 0 }} />}
+                    <span>{tx.description}</span>
+                  </div>
+                  <div className="tx-card-amount" style={{ color: isIncome ? "var(--color-income)" : "var(--color-text-primary)" }}>
+                    {formatCurrency(tx.amount_cents)}
+                  </div>
+                </div>
+                <div className="tx-card-meta">
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Calendar size={12} />
+                    {new Date(tx.transaction_date).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
+                  </span>
+                  <button 
+                    onClick={() => handleTagClick(tx.category?.name || "")}
+                    className={`badge badge-${isIncome ? "income" : "expense"}`} 
+                    style={{ cursor: "pointer" }}
+                  >
+                    {tx.category?.name}
+                  </button>
+                  {tx.installment_total && (
+                    <span className="badge badge-neutral" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                      <CreditCard size={10} />
+                      {tx.installment_current}/{tx.installment_total}
+                    </span>
+                  )}
+                  {tx.tags?.map((tag) => (
+                    <button 
+                      key={tag.id} 
+                      onClick={() => handleTagClick(tag.name)}
+                      style={{ cursor: "pointer", border: "1px solid var(--color-border-subtle)" }}
+                      className="badge badge-neutral"
+                    >
+                      <Tag size={10} />
+                      {tag.name}
+                    </button>
+                  ))}
+                  <div className="tx-card-actions">
+                    <DeleteButton id={tx.id} />
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
