@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
+import { AppleSplashScreens } from "./AppleSplashScreens";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -12,11 +13,19 @@ export const metadata: Metadata = {
   description:
     "Sistema de controle financeiro pessoal com entrada rápida via DSL, suporte a cartões de crédito e faturas.",
   keywords: ["finanças", "controle financeiro", "DSL", "tracker"],
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Tracker",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
@@ -36,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" data-theme="dark" className={outfit.variable}>
       <head>
-        <link rel="icon" href="/icon.png" />
+        <AppleSplashScreens />
       </head>
       <body className={outfit.className}>{children}</body>
     </html>
