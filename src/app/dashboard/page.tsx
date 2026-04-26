@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { SummarySkeleton } from "@/app/components/ui/skeleton";
-import SummaryCards from "./components/summary-cards";
 import QuickInput from "./components/quick-input";
 import TransactionList from "./components/transaction-list";
 import MonthSelector from "./components/month-selector";
@@ -8,7 +7,7 @@ import CategoryDonut from "./components/category-donut";
 import DailyChart from "./components/daily-chart";
 import { getCategoryBreakdown, getDailySpending } from "@/lib/actions/analytics";
 import { getTransactionSummary } from "@/lib/actions/transactions";
-import { formatCurrency } from "@/lib/utils/currency";
+import { formatAmount } from "@/lib/utils/currency";
 import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
 
 interface DashboardProps {
@@ -37,8 +36,8 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const summaryCards = [
     {
       title: "Saldo do Mês",
-      value: summary.balance_cents,
-      type: "neutral" as const,
+      value: Math.abs(summary.balance_cents),
+      type: summary.balance_cents >= 0 ? ("income" as const) : ("expense" as const),
       icon: <Wallet size={20} color="var(--color-text-secondary)" />,
     },
     {
@@ -58,7 +57,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
       {/* Header com seletor de mês */}
-      <header className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-6)" }}>
+      <header className="dashboard-page-header">
         <div>
           <h1 style={{ fontSize: "var(--text-3xl)", fontWeight: "800", letterSpacing: "-0.03em" }}>
             Dashboard
@@ -71,24 +70,25 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
       </header>
 
       {/* Summary Cards */}
-      <div className="summary-cards-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "var(--space-6)", marginBottom: "var(--space-8)" }}>
+      <div className="summary-cards-grid">
         {summaryCards.map((card) => (
-          <div key={card.title} className="glass card" style={{ padding: "var(--space-6)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-4)" }}>
+          <div key={card.title} className="glass card summary-card">
+            <div className="summary-card-header">
               {card.icon}
-              <span style={{ fontSize: "var(--text-sm)", color: "var(--color-text-secondary)", fontWeight: "500" }}>
+              <span className="summary-card-title">
                 {card.title}
               </span>
             </div>
             <div
+              className="summary-card-value"
               style={{
-                fontSize: "var(--text-3xl)",
-                fontWeight: "700",
                 color: card.type === "expense" ? "var(--color-expense)" : card.type === "income" ? "var(--color-income)" : "var(--color-text-primary)",
-                letterSpacing: "-0.02em",
               }}
             >
-              {formatCurrency(card.value)}
+              <div className="summary-card-value-container">
+                <span className="summary-card-currency">R$</span>
+                <span className="summary-card-amount">{formatAmount(card.value)}</span>
+              </div>
             </div>
           </div>
         ))}
