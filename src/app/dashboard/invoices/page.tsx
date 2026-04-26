@@ -101,7 +101,7 @@ export default function InvoicesPage() {
             <div className="animate-scale-in" style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
               {/* Invoice Summary Card */}
               <div className="glass" style={{ padding: "var(--space-8)", background: "var(--gradient-brand)", color: "white", border: "none" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                <div className="invoice-summary-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                   <div>
                     <div style={{ fontSize: "var(--text-xs)", opacity: 0.8, textTransform: "uppercase", fontWeight: "700" }}>Total da Fatura</div>
                     <div style={{ fontSize: "var(--text-4xl)", fontWeight: "900" }}>{formatCurrency(selectedInvoice.total_cents)}</div>

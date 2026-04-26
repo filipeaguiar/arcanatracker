@@ -26,12 +26,12 @@ export default function MonthSelector({ year, month }: MonthSelectorProps) {
   const todayParams = `?year=${now.getFullYear()}&month=${now.getMonth()}`;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+    <div className="month-selector-container" style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
       <a href={`/dashboard${prevParams}`} className="btn btn-ghost" style={{ padding: "var(--space-2)" }}>
         <ChevronLeft size={20} />
       </a>
 
-      <div style={{ minWidth: "200px", textAlign: "center" }}>
+      <div className="month-selector-label" style={{ minWidth: "200px", textAlign: "center" }}>
         <div style={{ fontSize: "var(--text-lg)", fontWeight: "700", textTransform: "capitalize" }}>
           {label}
         </div>

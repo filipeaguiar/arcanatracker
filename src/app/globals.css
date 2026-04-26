@@ -583,6 +583,39 @@ body {
     font-size: var(--text-lg) !important;
   }
 
+  /* Daily chart mobile scroll */
+  .daily-chart-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--space-2);
+  }
+  .daily-chart-inner {
+    min-width: 600px;
+    height: 240px;
+  }
+
+  /* Month selector wrapping */
+  .month-selector-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .month-selector-label {
+    min-width: unset !important;
+    width: 100%;
+    order: -1; /* Puts label on top */
+  }
+
+  /* Invoice summary header stacking */
+  .invoice-summary-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: var(--space-4);
+  }
+  .invoice-summary-header > div:last-child {
+    text-align: left !important;
+  }
+
   .hero-description {
     font-size: var(--text-base) !important;
   }
