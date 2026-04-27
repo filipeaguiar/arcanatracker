@@ -40,6 +40,7 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute =
     pathname === "/" ||
     pathname === "/login" ||
+    pathname === "/~offline" ||
     pathname.startsWith("/api/");
 
   // Redirect unauthenticated users to login
