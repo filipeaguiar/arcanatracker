@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
@@ -29,17 +29,20 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Refresh the session — this is critical for Server Components
+  // Refresh the session — critical for Server Components
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users to login (except for public routes)
-  const isPublicRoute =
-    request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/" ||
-    request.nextUrl.pathname.startsWith("/api/");
+  const { pathname } = request.nextUrl;
 
+  // Public routes that don't require authentication
+  const isPublicRoute =
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname.startsWith("/api/");
+
+  // Redirect unauthenticated users to login
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -47,7 +50,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Redirect authenticated users away from login
-  if (user && request.nextUrl.pathname === "/login") {
+  if (user && pathname === "/login") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
@@ -59,12 +62,14 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico (favicon)
-     * - public assets
+     * Match all request paths EXCEPT:
+     * - _next/static  (static files)
+     * - _next/image   (image optimization)
+     * - favicon.ico
+     * - manifest.webmanifest (PWA manifest — must be public)
+     * - sw.js, workbox-*.js  (service worker files)
+     * - Any static image/font assets in /public
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|sw\\.js|workbox-.*\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
   ],
 };
