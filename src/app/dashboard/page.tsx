@@ -8,7 +8,7 @@ import DailyChart from "./components/daily-chart";
 import { getCategoryBreakdown, getDailySpending } from "@/lib/actions/analytics";
 import { getTransactionSummary } from "@/lib/actions/transactions";
 import { formatAmount } from "@/lib/utils/currency";
-import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, Layers } from "lucide-react";
 
 interface DashboardProps {
   searchParams: Promise<{ year?: string; month?: string }>;
@@ -27,13 +27,20 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const endStr = endOfMonth.toISOString().split("T")[0];
 
   // Busca todos os dados do mês em paralelo
-  const [summary, categoryData, dailyData] = await Promise.all([
+  const [summary, totalSummary, categoryData, dailyData] = await Promise.all([
     getTransactionSummary(startStr, endStr),
+    getTransactionSummary(undefined, endStr), // Saldo acumulado até o fim do mês selecionado
     getCategoryBreakdown(startStr, endStr),
     getDailySpending(startStr, endStr),
   ]);
 
   const summaryCards = [
+    {
+      title: "Saldo Geral",
+      value: Math.abs(totalSummary.balance_cents),
+      type: totalSummary.balance_cents >= 0 ? ("income" as const) : ("expense" as const),
+      icon: <Layers size={20} color="var(--color-text-secondary)" />,
+    },
     {
       title: "Saldo do Mês",
       value: Math.abs(summary.balance_cents),

@@ -289,13 +289,32 @@ export async function deleteTransaction(id: string): Promise<void> {
 
   if (!user) throw new Error("Unauthorized");
 
-  const { error } = await supabase
+  // 1. Buscar a transação para verificar se faz parte de um grupo de parcelas
+  const { data: tx, error: fetchError } = await supabase
     .from("transactions")
-    .delete()
+    .select("installment_group_id")
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .single();
 
-  if (error) throw new Error(error.message);
+  if (fetchError || !tx) {
+    throw new Error(fetchError?.message || "Transação não encontrada");
+  }
+
+  // 2. Executar a deleção
+  let query = supabase.from("transactions").delete().eq("user_id", user.id);
+
+  if (tx.installment_group_id) {
+    // Deleta todas as parcelas do grupo
+    query = query.eq("installment_group_id", tx.installment_group_id);
+  } else {
+    // Deleta apenas a transação individual
+    query = query.eq("id", id);
+  }
+
+  const { error: deleteError } = await query;
+
+  if (deleteError) throw new Error(deleteError.message);
 
   revalidatePath("/dashboard");
   revalidatePath("/transactions");
