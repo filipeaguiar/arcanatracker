@@ -114,20 +114,20 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
             }}
           />
 
-          {/* Sheet */}
+          {/* Modal */}
           <div 
             className="glass"
             style={{
               position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "calc(100% - var(--space-8))",
+              maxWidth: "400px",
               zIndex: 101,
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 0,
+              borderRadius: "var(--radius-xl)",
               padding: "var(--space-6)",
-              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + var(--space-6))",
-              animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              animation: "popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
               maxHeight: "90vh",
               display: "flex",
               flexDirection: "column",
@@ -258,11 +258,11 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
         </>
       )}
 
-      {/* Global animations for the bottom sheet */}
+      {/* Global animations for the modal */}
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
+        @keyframes popIn {
+          from { opacity: 0; transform: translate(-50%, -40%) scale(0.95); }
+          to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
         @keyframes fadeIn {
           from { opacity: 0; }
