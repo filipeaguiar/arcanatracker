@@ -4,7 +4,6 @@
  * Server Actions — Tags
  */
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 export interface Tag {

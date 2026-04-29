@@ -1,12 +1,16 @@
 import { Suspense } from "react";
 import { SummarySkeleton } from "@/app/components/ui/skeleton";
-import QuickInput from "./components/quick-input";
+import { DesktopTransactionForm } from "./components/desktop-transaction-form";
+import { MobileTransactionFab } from "./components/mobile-transaction-fab";
 import TransactionList from "./components/transaction-list";
 import MonthSelector from "./components/month-selector";
 import CategoryDonut from "./components/category-donut";
 import DailyChart from "./components/daily-chart";
 import { getCategoryBreakdown, getDailySpending } from "@/lib/actions/analytics";
 import { getTransactionSummary } from "@/lib/actions/transactions";
+import { listCategories } from "@/lib/actions/categories";
+import { listTags } from "@/lib/actions/tags";
+import { listCreditCards } from "@/lib/actions/credit-cards";
 import { formatAmount } from "@/lib/utils/currency";
 import { Wallet, TrendingUp, TrendingDown, Layers } from "lucide-react";
 
@@ -26,12 +30,15 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const startStr = startOfMonth.toISOString().split("T")[0];
   const endStr = endOfMonth.toISOString().split("T")[0];
 
-  // Busca todos os dados do mês em paralelo
-  const [summary, totalSummary, categoryData, dailyData] = await Promise.all([
+  // Busca todos os dados em paralelo
+  const [summary, totalSummary, categoryData, dailyData, categories, tags, cards] = await Promise.all([
     getTransactionSummary(startStr, endStr),
     getTransactionSummary(undefined, endStr), // Saldo acumulado até o fim do mês selecionado
     getCategoryBreakdown(startStr, endStr),
     getDailySpending(startStr, endStr),
+    listCategories(),
+    listTags(),
+    listCreditCards(),
   ]);
 
   const summaryCards = [
@@ -107,8 +114,9 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         <DailyChart data={dailyData} year={year} month={month} />
       </div>
 
-      {/* Quick Input */}
-      <QuickInput />
+      {/* Input de Transações */}
+      <DesktopTransactionForm categories={categories} cards={cards} />
+      <MobileTransactionFab categories={categories} tags={tags} />
 
       {/* Transaction List */}
       <Suspense fallback={<SummarySkeleton />}>

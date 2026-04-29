@@ -621,6 +621,16 @@ body {
   .donut-legend {
     width: 100%;
   }
+
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
 }
 
 @media (min-width: 1025px) {
