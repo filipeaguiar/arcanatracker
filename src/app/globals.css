@@ -478,7 +478,7 @@ body {
 }
 
 .summary-card-title {
-  fontSize: var(--text-sm);
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   font-weight: 500;
 }
