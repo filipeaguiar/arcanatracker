@@ -677,13 +677,21 @@ body {
   left: 0;
   width: 100%;
   height: calc(70px + env(safe-area-inset-bottom, 0px));
+  background: rgba(10, 10, 15, 0.5);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-top: 1px solid var(--color-glass-border);
   display: flex;
   justify-content: space-around;
   align-items: center;
+  z-index: 100;
   padding: 0 var(--space-2);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .mobile-bottom-nav a,
@@ -729,6 +737,9 @@ body {
 .mobile-menu-content {
   width: 100%;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: rgba(15, 15, 20, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-top: 1px solid var(--color-glass-border);
 }
 

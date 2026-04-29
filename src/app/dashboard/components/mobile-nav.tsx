@@ -17,6 +17,11 @@ export function MobileNav({ userEmail }: { userEmail?: string }) {
     setMounted(true);
   }, []);
 
+  // Força o scroll para o topo sempre que a rota mudar
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
     <>
       <nav className="mobile-bottom-nav glass-blur">
