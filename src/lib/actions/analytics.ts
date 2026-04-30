@@ -127,13 +127,13 @@ export async function getTagBreakdown(
     .gte("transaction_date", from)
     .lte("transaction_date", to);
 
-  const txData = txRaw as any;
+  const txData = txRaw as { id: string; amount_cents: number }[] | null;
 
   if (txError) throw new Error(txError.message);
   if (!txData || txData.length === 0) return [];
 
-  const txIds = txData.map((tx) => tx.id);
-  const txAmountMap = new Map(txData.map((tx) => [tx.id, tx.amount_cents]));
+  const txIds = txData.map((tx: { id: string }) => tx.id);
+  const txAmountMap = new Map(txData.map((tx: { id: string; amount_cents: number }) => [tx.id, tx.amount_cents]));
 
   // Fetch tags for these transactions
   const { data: tagData, error: tagError } = await supabase
