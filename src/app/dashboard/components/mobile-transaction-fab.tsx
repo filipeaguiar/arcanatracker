@@ -116,7 +116,7 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
 
           {/* Modal */}
           <div 
-            className="glass"
+            className="glass-blur"
             style={{
               position: "fixed",
               top: "50%",

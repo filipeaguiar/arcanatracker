@@ -1,6 +1,8 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Calendar, Loader2 } from "lucide-react";
 
 interface MonthSelectorProps {
   year: number;
@@ -8,6 +10,9 @@ interface MonthSelectorProps {
 }
 
 export default function MonthSelector({ year, month }: MonthSelectorProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const label = new Date(year, month, 1).toLocaleDateString("pt-BR", {
     month: "long",
     year: "numeric",
@@ -17,42 +22,60 @@ export default function MonthSelector({ year, month }: MonthSelectorProps) {
   const isCurrentMonth =
     year === now.getFullYear() && month === now.getMonth();
 
-  // Build URLs for prev/next month
+  const navigate = (y: number, m: number) => {
+    startTransition(() => {
+      router.push(`/dashboard?year=${y}&month=${m}`);
+    });
+  };
+
   const prevDate = new Date(year, month - 1, 1);
   const nextDate = new Date(year, month + 1, 1);
 
-  const prevParams = `?year=${prevDate.getFullYear()}&month=${prevDate.getMonth()}`;
-  const nextParams = `?year=${nextDate.getFullYear()}&month=${nextDate.getMonth()}`;
-  const todayParams = `?year=${now.getFullYear()}&month=${now.getMonth()}`;
-
   return (
-    <div className="month-selector-container">
-      <a href={`/dashboard${prevParams}`} className="btn btn-ghost" style={{ padding: "var(--space-2)" }} title="Mês anterior">
+    <div className="month-selector-container" style={{ opacity: isPending ? 0.7 : 1, transition: "opacity 0.2s" }}>
+      <button 
+        onClick={() => navigate(prevDate.getFullYear(), prevDate.getMonth())} 
+        className="btn btn-ghost" 
+        style={{ padding: "var(--space-2)" }} 
+        title="Mês anterior"
+        disabled={isPending}
+      >
         <ChevronLeft size={20} />
-      </a>
+      </button>
 
-      <div className="month-selector-label">
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-3)", justifyContent: "center" }}>
+      <div className="month-selector-label" style={{ minWidth: "180px", position: "relative" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-3)", justifyContent: "center", width: "100%" }}>
+          {isPending && (
+            <Loader2 size={16} className="animate-spin" style={{ position: "absolute", left: "-24px", color: "var(--color-brand-primary)" }} />
+          )}
+          
           <span style={{ fontSize: "var(--text-lg)", fontWeight: "700", textTransform: "capitalize" }}>
             {label}
           </span>
           
           {!isCurrentMonth && (
-            <a 
-              href={`/dashboard${todayParams}`} 
+            <button 
+              onClick={() => navigate(now.getFullYear(), now.getMonth())} 
               className="badge badge-neutral month-selector-today" 
-              style={{ padding: "4px 8px", cursor: "pointer", textDecoration: "none" }}
+              style={{ padding: "4px 8px", cursor: "pointer", border: "none", display: "flex", alignItems: "center", gap: "4px" }}
               title="Ir para hoje"
+              disabled={isPending}
             >
               <Calendar size={12} /> Hoje
-            </a>
+            </button>
           )}
         </div>
       </div>
 
-      <a href={`/dashboard${nextParams}`} className="btn btn-ghost" style={{ padding: "var(--space-2)" }} title="Próximo mês">
+      <button 
+        onClick={() => navigate(nextDate.getFullYear(), nextDate.getMonth())} 
+        className="btn btn-ghost" 
+        style={{ padding: "var(--space-2)" }} 
+        title="Próximo mês"
+        disabled={isPending}
+      >
         <ChevronRight size={20} />
-      </a>
+      </button>
     </div>
   );
 }

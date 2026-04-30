@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/lib/actions/auth";
-import { Home, CreditCard, FileText, Repeat, Settings, LogOut, User } from "lucide-react";
+import { Home, CreditCard, FileText, Repeat, Settings, LogOut, User, PieChart } from "lucide-react";
 import { MobileNav } from "./components/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -59,6 +59,9 @@ export default async function DashboardLayout({
             </Link>
             <Link href="/dashboard/subscriptions" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
               <Repeat size={16} /> <span className="desktop-only-inline">Assinaturas</span>
+            </Link>
+            <Link href="/dashboard/reports" className="btn btn-ghost" style={{ fontSize: "var(--text-sm)", display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+              <PieChart size={16} /> <span className="desktop-only-inline">Relatórios</span>
             </Link>
           </nav>
         </div>

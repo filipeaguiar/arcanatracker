@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CreditCard, FileText, Repeat, Menu, Settings, LogOut, User, X, Moon, Sun } from "lucide-react";
+import { Home, CreditCard, FileText, Repeat, Menu, Settings, LogOut, User, X, Moon, Sun, PieChart } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { useTheme } from "next-themes";
 
@@ -79,6 +79,10 @@ export function MobileNav({ userEmail }: { userEmail?: string }) {
                   )}
                 </button>
               )}
+              <Link href="/dashboard/reports" onClick={() => setMenuOpen(false)} className="btn btn-ghost" style={{ justifyContent: "flex-start", padding: "var(--space-4)", fontSize: "16px" }}>
+                <PieChart size={20} style={{ marginRight: "var(--space-3)" }} />
+                Relatórios
+              </Link>
               <Link href="/dashboard/settings" onClick={() => setMenuOpen(false)} className="btn btn-ghost" style={{ justifyContent: "flex-start", padding: "var(--space-4)", fontSize: "16px" }}>
                 <Settings size={20} style={{ marginRight: "var(--space-3)" }} />
                 Configurações

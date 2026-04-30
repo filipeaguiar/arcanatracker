@@ -130,7 +130,7 @@ export default function TransactionListClient({ initialTransactions }: { initial
                       <td style={{ padding: "var(--space-4) var(--space-6)", fontSize: "var(--text-sm)", color: "var(--color-text-secondary)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
                           <Calendar size={14} />
-                          {new Date(tx.transaction_date).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
+                          {new Date(tx.transaction_date + "T12:00:00").toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
                         </div>
                       </td>
                       <td style={{ padding: "var(--space-4) var(--space-6)" }}>
@@ -206,7 +206,7 @@ export default function TransactionListClient({ initialTransactions }: { initial
                 <div className="tx-card-meta">
                   <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                     <Calendar size={12} />
-                    {new Date(tx.transaction_date).toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
+                    {new Date(tx.transaction_date + "T12:00:00").toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
                   </span>
                   <button 
                     onClick={() => handleTagClick(formatCategoryName(tx.category?.name) || "")}

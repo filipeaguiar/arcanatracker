@@ -218,21 +218,74 @@ async function insertTransactionRecords(
           )
         : [calculateInvoiceDates(params.transactionDate, card.closing_day, card.due_day)];
 
-      invoiceIds = await Promise.all(
-        invoiceDatesList.map((dates: { referenceMonth: string; closingDate: string; dueDate: string }) =>
-          getOrCreateInvoice(
+      const invoiceDataList = await Promise.all(
+        invoiceDatesList.map(async (dates: { referenceMonth: string; closingDate: string; dueDate: string }) => {
+          const id = await getOrCreateInvoice(
             supabase,
             card.id,
             dates.referenceMonth,
             dates.closingDate,
             dates.dueDate
-          )
-        )
+          );
+          return { id, dueDate: dates.dueDate };
+        })
       );
+      
+      invoiceIds = invoiceDataList.map(d => d.id);
+      // We'll use these due dates for the transaction dates
+      const invoiceDueDates = invoiceDataList.map(d => d.dueDate);
+
+      // Build rows using invoice due dates
+      const rows = params.amountCentsList.map((amountCents, index) => {
+        return {
+          user_id: userId,
+          transaction_date: invoiceDueDates[index],
+          amount_cents: amountCents,
+          description: params.description,
+          category_id: params.categoryId,
+          credit_card_id: params.creditCardId,
+          invoice_id: invoiceIds[index],
+          installment_group_id: groupId,
+          installment_current: isInstallment ? index + 1 : null,
+          installment_total: isInstallment ? installmentCount : null,
+        };
+      });
+
+      const { data: inserted, error: insertError } = await supabase
+        .from("transactions")
+        .insert(rows)
+        .select("id");
+
+      if (insertError) {
+        return { success: false, error: insertError.message };
+      }
+
+      if (params.tagIds.length > 0 && inserted) {
+        const tagLinks = inserted.flatMap((tx: { id: string }) =>
+          params.tagIds.map((tagId) => ({
+            transaction_id: tx.id,
+            tag_id: tagId,
+          }))
+        );
+
+        const { error: tagError } = await supabase.from("transaction_tags").insert(tagLinks);
+        if (tagError) console.error("Failed to link tags:", tagError);
+      }
+
+      revalidatePath("/dashboard");
+      revalidatePath("/transactions");
+
+      return {
+        success: true,
+        data: {
+          created: inserted?.length ?? 0,
+          group_id: groupId,
+        },
+      };
     }
   }
 
-  // Build rows
+  // Fallback for non-credit card transactions (Direct payments)
   const rows = params.amountCentsList.map((amountCents, index) => {
     let installmentTxDate = params.transactionDate;
     if (isInstallment && index > 0) {
@@ -247,8 +300,8 @@ async function insertTransactionRecords(
       amount_cents: amountCents,
       description: params.description,
       category_id: params.categoryId,
-      credit_card_id: params.creditCardId,
-      invoice_id: invoiceIds[index],
+      credit_card_id: null,
+      invoice_id: null,
       installment_group_id: groupId,
       installment_current: isInstallment ? index + 1 : null,
       installment_total: isInstallment ? installmentCount : null,

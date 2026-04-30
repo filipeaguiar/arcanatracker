@@ -37,7 +37,8 @@ export async function getCategoryBreakdown(
   // Agregar por categoria
   const map = new Map<string, CategoryBreakdown>();
   for (const row of data ?? []) {
-    const cat = row.category as unknown as { name: string; type: string };
+    const catRaw = row.category;
+    const cat = Array.isArray(catRaw) ? catRaw[0] : catRaw as unknown as { name: string; type: string };
     if (!cat) continue;
     const key = cat.name;
     const existing = map.get(key) || {
@@ -80,7 +81,9 @@ export async function getDailySpending(
   const map = new Map<string, DailySpending>();
   for (const row of data ?? []) {
     const date = row.transaction_date;
-    const catType = (row.category as unknown as { type: string })?.type;
+    const catRaw = row.category;
+    const cat = Array.isArray(catRaw) ? catRaw[0] : catRaw as unknown as { type: string };
+    const catType = cat?.type;
     const existing = map.get(date) || {
       date,
       expense_cents: 0,
@@ -96,5 +99,70 @@ export async function getDailySpending(
 
   return Array.from(map.values()).sort((a, b) =>
     a.date.localeCompare(b.date)
+  );
+}
+
+export interface TagBreakdown {
+  name: string;
+  total_cents: number;
+  count: number;
+}
+
+export async function getTagBreakdown(
+  from: string,
+  to: string
+): Promise<TagBreakdown[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  // Fetch expense transactions only (usually tags are used for expenses, or we can fetch all and filter by expense)
+  const { data: txRaw, error: txError } = await supabase
+    .from("transactions")
+    .select("id, amount_cents, category:categories!inner(type)")
+    .eq("user_id", user.id)
+    .eq("categories.type", "expense")
+    .gte("transaction_date", from)
+    .lte("transaction_date", to);
+
+  const txData = txRaw as any;
+
+  if (txError) throw new Error(txError.message);
+  if (!txData || txData.length === 0) return [];
+
+  const txIds = txData.map((tx) => tx.id);
+  const txAmountMap = new Map(txData.map((tx) => [tx.id, tx.amount_cents]));
+
+  // Fetch tags for these transactions
+  const { data: tagData, error: tagError } = await supabase
+    .from("transaction_tags")
+    .select("transaction_id, tag:tags(name)")
+    .in("transaction_id", txIds);
+
+  if (tagError) throw new Error(tagError.message);
+
+  const map = new Map<string, TagBreakdown>();
+
+  for (const row of tagData ?? []) {
+    const tagName = (row.tag as any)?.name;
+    if (!tagName) continue;
+
+    const amount = txAmountMap.get(row.transaction_id) || 0;
+    const existing = map.get(tagName) || {
+      name: tagName,
+      total_cents: 0,
+      count: 0,
+    };
+    
+    existing.total_cents += amount;
+    // Note: This count is the number of transactions with this tag
+    existing.count += 1;
+    map.set(tagName, existing);
+  }
+
+  return Array.from(map.values()).sort(
+    (a, b) => b.total_cents - a.total_cents
   );
 }

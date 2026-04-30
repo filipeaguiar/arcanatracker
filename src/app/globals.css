@@ -191,34 +191,33 @@ body {
 
 /* --- Utility Classes --- */
 
-/* Glass Navigation — Frosted Glass Effect */
+/* Glass Navigation — Only used for Header and Mobile Menus */
 .glass-blur {
-  background: rgba(10, 10, 15, 0.6) !important;
+  background: rgba(10, 10, 15, 0.7) !important;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   z-index: 1000;
+  border-bottom: 1px solid var(--color-glass-border);
 }
 
 [data-theme="light"] .glass-blur {
-  background: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
 }
 
-/* Remove the pseudo-element that was masking the effect */
-.glass-blur::before {
-  display: none !important;
-}
-
-/* Glass card */
+/* Base card style — SOLID background for data cards */
 .glass {
-  background: color-mix(in srgb, var(--color-bg-secondary), transparent 10%);
-  border: 1px solid var(--color-glass-border);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
 }
 
 .glass:hover {
-  background: var(--color-glass-hover);
+  background: var(--color-bg-elevated);
   border-color: var(--color-border-hover);
 }
+
+
 
 .card {
   box-shadow: var(--shadow-sm);

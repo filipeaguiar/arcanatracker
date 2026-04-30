@@ -8,6 +8,7 @@ import {
   deleteCategory,
   Category,
 } from "@/lib/actions/categories";
+import { seedMockData } from "@/lib/actions/seed";
 import { getCategoryColor, getCategoryBgColor } from "@/lib/utils/category-colors";
 import { formatCategoryName } from "@/lib/utils/format";
 import { Settings, Plus, Pencil, Trash2, Check, X, ArrowUpRight, ArrowDownRight } from "lucide-react";
@@ -69,6 +70,19 @@ export default function SettingsPage() {
     });
   }
 
+  async function handleSeed() {
+    if (!confirm("Isso irá inserir aproximadamente 150 transações mock nos últimos 12 meses. Deseja continuar?")) return;
+    startTransition(async () => {
+      const res = await seedMockData();
+      if (res.success) {
+        alert(`Sucesso! ${res.count} transações inseridas.`);
+        loadCategories();
+      } else {
+        alert(`Erro: ${res.error}`);
+      }
+    });
+  }
+
   const expenses = categories.filter((c) => c.type === "expense");
   const income = categories.filter((c) => c.type === "income");
 
@@ -82,6 +96,28 @@ export default function SettingsPage() {
           Gerencie suas categorias de lançamentos.
         </p>
       </header>
+
+      {/* Seção de Ferramentas / Seed */}
+      <div className="glass" style={{ padding: "var(--space-6)", border: "1px dashed var(--color-border-subtle)" }}>
+        <h3 style={{ fontSize: "var(--text-lg)", fontWeight: "600", marginBottom: "var(--space-2)", color: "var(--color-income)" }}>
+          Modo Desenvolvedor / Testes
+        </h3>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "var(--text-sm)", marginBottom: "var(--space-4)" }}>
+          Precisa de dados para testar os relatórios? Este botão popula sua conta com transações realistas dos últimos 12 meses.
+        </p>
+        <button 
+          className="btn btn-ghost" 
+          onClick={handleSeed} 
+          disabled={isPending}
+          style={{ 
+            background: "rgba(16, 185, 129, 0.1)", 
+            color: "var(--color-income)",
+            border: "1px solid rgba(16, 185, 129, 0.2)"
+          }}
+        >
+          {isPending ? "Populando banco..." : "Popular Banco com Dados Mock"}
+        </button>
+      </div>
 
       {/* Formulário de nova categoria */}
       <div className="glass" style={{ padding: "var(--space-6)" }}>
