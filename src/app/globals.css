@@ -194,10 +194,14 @@ body {
 /* Glass Navigation — Only used for Header and Mobile Menus */
 .glass-blur {
   background: rgba(10, 10, 15, 0.7) !important;
-  backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
   z-index: 1000;
   border-bottom: 1px solid var(--color-glass-border);
+  /* Force hardware acceleration for mobile */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: backdrop-filter;
 }
 
 [data-theme="light"] .glass-blur {
@@ -684,10 +688,14 @@ body {
   left: 0;
   width: 100%;
   height: calc(70px + env(safe-area-inset-bottom, 0px));
-  background: rgba(10, 10, 15, 0.5);
-  backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(10, 10, 15, 0.7);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   border-top: 1px solid var(--color-glass-border);
+  /* Force hardware acceleration for mobile */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: backdrop-filter;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -698,7 +706,7 @@ body {
 }
 
 [data-theme="light"] .mobile-bottom-nav {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .mobile-bottom-nav a,
@@ -748,6 +756,9 @@ body {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-top: 1px solid var(--color-glass-border);
+  /* Force hardware acceleration for mobile */
+  transform: translateZ(0);
+  will-change: backdrop-filter;
 }
 
 @media (min-width: 768px) {
