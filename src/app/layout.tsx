@@ -41,6 +41,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+export const unstable_instant = false;
+
 export default function RootLayout({
   children,
 }: Readonly<{

@@ -5,6 +5,8 @@ import { Home, CreditCard, FileText, Repeat, Settings, LogOut, User, PieChart } 
 import { MobileNav } from "./components/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 
+export const unstable_instant = false;
+
 export default async function DashboardLayout({
   children,
 }: {

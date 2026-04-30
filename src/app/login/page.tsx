@@ -5,6 +5,8 @@ import { login, signup } from "@/lib/actions/auth";
 import { Mail, Lock, ShieldCheck, ArrowRight, Activity, Wallet } from "lucide-react";
 import Image from "next/image";
 
+export const unstable_instant = false;
+
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
