@@ -44,8 +44,8 @@ export function MobileNav({ userEmail }: { userEmail?: string }) {
 
       {/* Overlay Menu */}
       {menuOpen && (
-        <div className="mobile-menu-overlay animate-scale-in">
-          <div className="mobile-menu-content glass-blur">
+        <div className="mobile-menu-overlay">
+          <div className="mobile-menu-content glass-blur animate-scale-in">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "var(--space-6)", borderBottom: "1px solid var(--color-border-subtle)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
                 <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-bg-secondary)", border: "1px solid var(--color-border-subtle)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary)", flexShrink: 0 }}>

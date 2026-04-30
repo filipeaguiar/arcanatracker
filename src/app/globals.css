@@ -745,6 +745,10 @@ body {
   align-items: flex-end;
 }
 
+[data-theme="light"] .mobile-menu-overlay {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 [data-theme="light"] .mobile-menu-content {
   background: rgba(255, 255, 255, 0.7);
 }
@@ -793,8 +797,8 @@ body {
   }
 }
 @keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from { transform: scale(0.95) translateZ(0); opacity: 0; }
+  to { transform: scale(1) translateZ(0); opacity: 1; }
 }
 
 .animate-scale-in {
