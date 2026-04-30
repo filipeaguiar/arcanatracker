@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/lib/actions/auth";
 import { Home, CreditCard, FileText, Repeat, Settings, LogOut, User, PieChart } from "lucide-react";
@@ -7,16 +8,53 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export const unstable_instant = false;
 
-export default async function DashboardLayout({
+// Componente para exibir info do usuário (dinâmico)
+async function UserInfo() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+      <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-bg-secondary)", border: "1px solid var(--color-border-subtle)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary)", flexShrink: 0 }}>
+        <User size={16} />
+      </div>
+      <div className="desktop-only" style={{ textAlign: "left" }}>
+        <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-tertiary)", lineHeight: 1 }}>
+          Conectado como
+        </div>
+        <div style={{ fontSize: "var(--text-sm)", fontWeight: "600", color: "var(--color-text-primary)" }}>
+          {user?.email?.split("@")[0] || "Usuário"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Fallback para o UserInfo
+function UserInfoFallback() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", opacity: 0.5 }}>
+      <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-bg-secondary)" }} />
+      <div className="desktop-only">
+        <div style={{ width: "60px", height: "8px", background: "var(--color-bg-secondary)", borderRadius: "4px", marginBottom: "4px" }} />
+        <div style={{ width: "40px", height: "10px", background: "var(--color-bg-secondary)", borderRadius: "4px" }} />
+      </div>
+    </div>
+  );
+}
+
+// Wrapper para o MobileNav (dinâmico)
+async function MobileNavWithUser() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return <MobileNav userEmail={user?.email} />;
+}
+
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
     <div style={{ minHeight: "100vh", position: "relative", display: "flex", flexDirection: "column" }}>
       <header
@@ -31,6 +69,7 @@ export default async function DashboardLayout({
           top: 0,
           left: 0,
           right: 0,
+          zIndex: 100,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-8)", minWidth: 0 }}>
@@ -69,20 +108,12 @@ export default async function DashboardLayout({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-bg-secondary)", border: "1px solid var(--color-border-subtle)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary)", flexShrink: 0 }}>
-              <User size={16} />
-            </div>
-            <div className="desktop-only" style={{ textAlign: "left" }}>
-              <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-tertiary)", lineHeight: 1 }}>
-                Conectado como
-              </div>
-              <div style={{ fontSize: "var(--text-sm)", fontWeight: "600", color: "var(--color-text-primary)" }}>
-                {user?.email?.split("@")[0]}
-              </div>
-            </div>
-          </div>
+          <Suspense fallback={<UserInfoFallback />}>
+            <UserInfo />
+          </Suspense>
+          
           <div style={{ width: "1px", height: "24px", background: "var(--color-border-subtle)" }}></div>
+          
           <div style={{ display: "flex", gap: "var(--space-1)" }}>
             <ThemeToggle />
             <Link href="/dashboard/settings" className="btn btn-ghost" style={{ padding: "var(--space-2)", color: "var(--color-text-secondary)" }} title="Configurações">
@@ -104,7 +135,9 @@ export default async function DashboardLayout({
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <MobileNav userEmail={user?.email} />
+      <Suspense fallback={<div style={{ height: "64px" }} />}>
+        <MobileNavWithUser />
+      </Suspense>
     </div>
   );
 }

@@ -18,9 +18,15 @@ interface DashboardProps {
   searchParams: Promise<{ year?: string; month?: string }>;
 }
 
-export const unstable_instant = { prefetch: 'static' };
+export const unstable_instant = { 
+  prefetch: 'static',
+  samples: [
+    { searchParams: { year: null, month: null } }
+  ]
+};
 
-export default async function DashboardPage({ searchParams }: DashboardProps) {
+// Componente interno que lida com os dados dinâmicos
+async function DashboardContent({ searchParams }: { searchParams: Promise<{ year?: string; month?: string }> }) {
   const params = await searchParams;
   const now = new Date();
   const year = params.year ? parseInt(params.year) : now.getFullYear();
@@ -35,7 +41,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   // Busca todos os dados em paralelo
   const [summary, totalSummary, categoryData, dailyData, categories, tags, cards] = await Promise.all([
     getTransactionSummary(startStr, endStr),
-    getTransactionSummary(undefined, endStr), // Saldo acumulado até o fim do mês selecionado
+    getTransactionSummary(undefined, endStr), 
     getCategoryBreakdown(startStr, endStr),
     getDailySpending(startStr, endStr),
     listCategories(),
@@ -71,7 +77,7 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+    <>
       {/* Header com seletor de mês */}
       <header className="dashboard-page-header">
         <div>
@@ -123,6 +129,16 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
       {/* Transaction List */}
       <Suspense fallback={<SummarySkeleton />}>
         <TransactionList from={startStr} to={endStr} />
+      </Suspense>
+    </>
+  );
+}
+
+export default function DashboardPage({ searchParams }: DashboardProps) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+      <Suspense fallback={<SummarySkeleton />}>
+        <DashboardContent searchParams={searchParams} />
       </Suspense>
     </div>
   );

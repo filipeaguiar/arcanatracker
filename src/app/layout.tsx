@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import { AppleSplashScreens } from "./AppleSplashScreens";
 import { ThemeProvider } from "./theme-provider";
+import { Suspense } from "react";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -55,7 +56,9 @@ export default function RootLayout({
       </head>
       <body className={outfit.className}>
         <ThemeProvider>
-          {children}
+          <Suspense fallback={null}>
+            {children}
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

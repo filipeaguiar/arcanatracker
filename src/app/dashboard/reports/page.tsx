@@ -7,16 +7,20 @@ interface ReportsPageProps {
   searchParams: Promise<{ period?: string; refDate?: string }>;
 }
 
-export const unstable_instant = { prefetch: 'static' };
+export const unstable_instant = { 
+  prefetch: 'static',
+  samples: [
+    { searchParams: { period: null, refDate: null } }
+  ]
+};
 
-export default async function ReportsPage({ searchParams }: ReportsPageProps) {
+async function ReportsContent({ searchParams }: { searchParams: Promise<{ period?: string; refDate?: string }> }) {
   const params = await searchParams;
   const period = params.period || "monthly";
-  // refDate é a data de referência (padrão é hoje)
   const refDate = params.refDate || new Date().toISOString().split("T")[0];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+    <>
       <header className="dashboard-page-header">
         <div>
           <h1 style={{ fontSize: "var(--text-3xl)", fontWeight: "800", letterSpacing: "-0.03em" }}>
@@ -32,6 +36,16 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
 
       <Suspense fallback={<SummarySkeleton />}>
         <ReportsDashboard period={period} refDate={refDate} />
+      </Suspense>
+    </>
+  );
+}
+
+export default function ReportsPage({ searchParams }: ReportsPageProps) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+      <Suspense fallback={<SummarySkeleton />}>
+        <ReportsContent searchParams={searchParams} />
       </Suspense>
     </div>
   );
