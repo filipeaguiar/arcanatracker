@@ -18,6 +18,8 @@ interface DashboardProps {
   searchParams: Promise<{ year?: string; month?: string }>;
 }
 
+export const unstable_instant = { prefetch: 'static' };
+
 export default async function DashboardPage({ searchParams }: DashboardProps) {
   const params = await searchParams;
   const now = new Date();

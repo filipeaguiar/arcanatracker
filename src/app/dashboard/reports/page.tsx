@@ -7,6 +7,8 @@ interface ReportsPageProps {
   searchParams: Promise<{ period?: string; refDate?: string }>;
 }
 
+export const unstable_instant = { prefetch: 'static' };
+
 export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const params = await searchParams;
   const period = params.period || "monthly";
