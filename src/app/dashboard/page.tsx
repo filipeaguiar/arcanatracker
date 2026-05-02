@@ -124,7 +124,7 @@ async function DashboardContent({ searchParams }: { searchParams: Promise<{ year
 
       {/* Input de Transações */}
       <DesktopTransactionForm categories={categories} cards={cards} />
-      <MobileTransactionFab categories={categories} tags={tags} />
+      <MobileTransactionFab categories={categories} tags={tags} cards={cards} />
 
       {/* Transaction List */}
       <Suspense fallback={<SummarySkeleton />}>

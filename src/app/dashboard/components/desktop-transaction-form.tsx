@@ -244,7 +244,7 @@ export function DesktopTransactionForm({ categories, cards }: DesktopTransaction
                   value={installments}
                   onChange={(e) => setInstallments(parseInt(e.target.value) || 1)}
                   style={{ paddingLeft: "var(--space-10)" }}
-                  disabled={loading || !creditCardId}
+                  disabled={loading}
                 />
               </div>
             </div>

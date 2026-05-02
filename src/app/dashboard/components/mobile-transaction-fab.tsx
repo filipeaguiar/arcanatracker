@@ -1,22 +1,30 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Plus, Mic, Send, X, Hash, LayoutGrid } from "lucide-react";
+import { Plus, Mic, Send, X, Hash, LayoutGrid, CreditCard, Check } from "lucide-react";
 import { createTransaction } from "@/lib/actions/transactions";
 import type { Category } from "@/lib/actions/categories";
 import type { Tag } from "@/lib/actions/tags";
+import type { CreditCard as CreditCardType } from "@/lib/actions/credit-cards";
 
 interface MobileTransactionFabProps {
   categories: Category[];
   tags: Tag[];
+  cards: CreditCardType[];
 }
 
-export function MobileTransactionFab({ categories, tags }: MobileTransactionFabProps) {
+export function MobileTransactionFab({ categories, tags, cards }: MobileTransactionFabProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; type: "income" | "expense" | "neutral" } | null>(null);
   
+  // Credit card state
+  const defaultCardId = cards.find(c => c.is_default)?.id || cards[0]?.id || "";
+  const [useCard, setUseCard] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string>(defaultCardId);
+  const [showCardMenu, setShowCardMenu] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus when opened
@@ -30,10 +38,35 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
   const closeSheet = () => {
     setIsOpen(false);
     setFeedback(null);
+    setShowCardMenu(false);
   };
 
   const openSheet = () => {
     setIsOpen(true);
+  };
+
+  const handleCardIconClick = () => {
+    if (cards.length === 0) return; // No cards to select
+
+    if (cards.length === 1) {
+      // Toggle card usage directly
+      setUseCard(!useCard);
+      if (!useCard) setSelectedCardId(cards[0].id);
+    } else {
+      // Show selection menu for multiple cards
+      setShowCardMenu(true);
+    }
+  };
+
+  const selectCard = (cardId: string | null) => {
+    if (cardId === null) {
+      setUseCard(false);
+    } else {
+      setUseCard(true);
+      setSelectedCardId(cardId);
+    }
+    setShowCardMenu(false);
+    inputRef.current?.focus();
   };
 
   const handleAppend = (text: string) => {
@@ -51,7 +84,10 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
     setLoading(true);
     setFeedback(null);
 
-    const result = await createTransaction(input);
+    const result = await createTransaction(input, undefined, {
+      useCreditCard: useCard,
+      creditCardId: useCard ? selectedCardId : null,
+    });
 
     if (result.success) {
       setFeedback({
@@ -144,6 +180,24 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
 
             {/* Input Form */}
             <form onSubmit={handleSubmit} style={{ display: "flex", gap: "var(--space-2)", position: "relative" }}>
+              {cards.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleCardIconClick}
+                  className={`btn ${useCard ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{
+                    padding: "var(--space-3)",
+                    border: useCard ? "none" : "1px solid var(--color-border)",
+                    background: useCard ? "var(--color-brand-primary)" : "var(--color-bg-secondary)",
+                    color: useCard ? "white" : "var(--color-text-secondary)",
+                    borderRadius: "var(--radius-lg)",
+                  }}
+                  title="Pagar com Cartão"
+                >
+                  <CreditCard size={20} />
+                </button>
+              )}
+
               <input
                 ref={inputRef}
                 type="text"
@@ -158,7 +212,7 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
                 type="submit"
                 className="btn btn-primary"
                 disabled={loading || !input.trim()}
-                style={{ padding: "var(--space-4)" }}
+                style={{ padding: "var(--space-4)", borderRadius: "var(--radius-lg)" }}
               >
                 <Send size={20} />
               </button>
@@ -201,6 +255,76 @@ export function MobileTransactionFab({ categories, tags }: MobileTransactionFabP
               </div>
               Gravar Áudio
             </button>
+
+            {/* Card Menu Overlay */}
+            {showCardMenu && cards.length > 1 && (
+              <div
+                className="glass-blur"
+                style={{
+                  position: "absolute",
+                  bottom: "100%",
+                  left: "var(--space-6)",
+                  right: "var(--space-6)",
+                  marginBottom: "var(--space-4)",
+                  background: "var(--color-bg-primary)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "var(--radius-xl)",
+                  padding: "var(--space-4)",
+                  zIndex: 102,
+                  boxShadow: "var(--shadow-lg)",
+                  animation: "popIn 0.2s ease forwards",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-2)"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2)" }}>
+                  <h4 style={{ fontSize: "var(--text-sm)", fontWeight: "600", color: "var(--color-text-secondary)" }}>Selecione o Cartão</h4>
+                  <button onClick={() => setShowCardMenu(false)} className="btn btn-ghost" style={{ padding: "var(--space-1)" }}>
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => selectCard(null)}
+                  className="btn"
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "var(--space-3)",
+                    background: !useCard ? "var(--color-bg-secondary)" : "transparent",
+                    border: "none",
+                    borderRadius: "var(--radius-md)",
+                    textAlign: "left"
+                  }}
+                >
+                  <span>Débito/Dinheiro</span>
+                  {!useCard && <Check size={16} color="var(--color-brand-primary)" />}
+                </button>
+
+                {cards.map(card => (
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => selectCard(card.id)}
+                    className="btn"
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "var(--space-3)",
+                      background: useCard && selectedCardId === card.id ? "var(--color-bg-secondary)" : "transparent",
+                      border: "none",
+                      borderRadius: "var(--radius-md)",
+                      textAlign: "left"
+                    }}
+                  >
+                    <span>{card.name}</span>
+                    {useCard && selectedCardId === card.id && <Check size={16} color="var(--color-brand-primary)" />}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Feedback Message */}
             {feedback && (

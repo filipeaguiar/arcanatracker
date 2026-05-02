@@ -75,7 +75,11 @@ export interface ListTransactionsResult {
  */
 export async function createTransaction(
   input: string,
-  transactionDate?: string
+  transactionDate?: string,
+  options?: {
+    useCreditCard?: boolean;
+    creditCardId?: string | null;
+  }
 ): Promise<CreateTransactionResult> {
   const supabase = await createClient();
   const {
@@ -101,7 +105,26 @@ export async function createTransaction(
     const tags = await findOrCreateTags(parsed.tags);
 
     // 4. Resolve credit card
-    const card = await resolveDefaultCard();
+    let finalCreditCardId: string | null = null;
+
+    // Always use credit card if it's an installment format (e.g., 10*30)
+    const isInstallment = parsed.installment_type !== null;
+
+    if (isInstallment) {
+      if (options?.creditCardId) {
+        finalCreditCardId = options.creditCardId;
+      } else {
+        const defaultCard = await resolveDefaultCard();
+        finalCreditCardId = defaultCard?.id ?? null;
+      }
+    } else if (options?.useCreditCard) {
+      if (options.creditCardId) {
+        finalCreditCardId = options.creditCardId;
+      } else {
+        const defaultCard = await resolveDefaultCard();
+        finalCreditCardId = defaultCard?.id ?? null;
+      }
+    }
 
     // 5. Build the params for internal insertion
     return await insertTransactionRecords(supabase, user.id, {
@@ -109,7 +132,7 @@ export async function createTransaction(
       amountCentsList: parsed.installments,
       description: parsed.description || parsed.category,
       categoryId: category.id,
-      creditCardId: card?.id ?? null,
+      creditCardId: finalCreditCardId,
       tagIds: tags.map(t => t.id),
     });
 
@@ -166,12 +189,18 @@ export async function createTransactionStructured(
     amounts = [input.amount_cents];
   }
 
+  let finalCreditCardId = input.credit_card_id || null;
+  if (isInstallment && !finalCreditCardId) {
+    const defaultCard = await resolveDefaultCard();
+    finalCreditCardId = defaultCard?.id ?? null;
+  }
+
     return await insertTransactionRecords(supabase, user.id, {
       transactionDate: input.transaction_date,
       amountCentsList: amounts,
       description: input.description,
       categoryId: categoryId,
-      creditCardId: input.credit_card_id,
+      creditCardId: finalCreditCardId,
       tagIds: tagIds,
     });
   } catch (err) {
