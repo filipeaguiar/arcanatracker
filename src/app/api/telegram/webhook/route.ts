@@ -80,8 +80,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-import { findOrCreateCategoryAdmin, findOrCreateTagsAdmin } from "@/lib/actions/db-helpers";
-...
     const parsed = parseResult.data;
     const userId = connection.user_id;
 
