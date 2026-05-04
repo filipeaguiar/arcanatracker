@@ -70,7 +70,14 @@ export async function POST(req: Request) {
     // Processa a mensagem como DSL
     const parseResult = parse(text);
     if (!parseResult.success) {
-      await sendTelegramMessage(chatId, `❌ *Não entendi o comando.*\n\nExemplo: \`150 mercado #casa\``);
+      await sendTelegramMessage(
+        chatId, 
+        `❌ *Não entendi o que você quis dizer.*\n\n` +
+        `Tente o formato: \`valor descrição #tag\`\n\n` +
+        `Exemplos:\n` +
+        `• \`150 mercado #casa\`\n` +
+        `• \`300/3 netflix\``
+      );
       return NextResponse.json({ ok: true });
     }
 
@@ -98,7 +105,7 @@ export async function POST(req: Request) {
       creditCardId = defaultCard?.id || null;
     }
 
-    // Inserção direta (replicando lógica do insertTransactionRecords)
+    // Inserção direta
     const installmentCount = parsed.installments.length;
     const groupId = isInstallment ? crypto.randomUUID() : null;
 
@@ -140,7 +147,10 @@ export async function POST(req: Request) {
 
     const { data: inserted, error: insError } = await supabaseAdmin.from('transactions').insert(rows).select('id');
 
-    if (insError) throw insError;
+    if (insError) {
+      await sendTelegramMessage(chatId, `❌ *Erro ao salvar:* ${insError.message}`);
+      return NextResponse.json({ ok: true });
+    }
 
     // Link Tags
     if (tags.length > 0 && inserted) {
