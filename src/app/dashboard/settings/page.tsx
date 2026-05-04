@@ -227,8 +227,8 @@ function CategoryRow({
   onEditNameChange: (v: string) => void;
   onEditTypeChange: (v: "income" | "expense") => void;
 }) {
-  const color = getCategoryColor(category.name);
-  const bgColor = getCategoryBgColor(category.name, 0.1);
+  const color = getCategoryColor(category.name, category.type);
+  const bgColor = getCategoryBgColor(category.name, category.type, 0.1);
 
   if (isEditing) {
     return (

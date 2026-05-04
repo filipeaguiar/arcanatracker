@@ -1,61 +1,62 @@
 /**
  * Sistema de cores determinísticas para categorias.
  *
- * Cada categoria recebe uma cor fixa baseada em seu nome,
- * garantindo consistência visual em todos os gráficos e badges.
+ * Agora separa despesas e receitas.
  */
 
-// Paleta curada — cores vibrantes que funcionam bem em dark mode
-const CATEGORY_PALETTE = [
-  "#6366f1", // indigo
-  "#8b5cf6", // violet
-  "#a78bfa", // purple light
-  "#ec4899", // pink
+// Cores para Despesas (sem tons de verde)
+const EXPENSE_PALETTE = [
   "#f43f5e", // rose
   "#ef4444", // red
   "#f97316", // orange
   "#f59e0b", // amber
   "#eab308", // yellow
-  "#84cc16", // lime
-  "#22c55e", // green
-  "#10b981", // emerald
-  "#14b8a6", // teal
-  "#06b6d4", // cyan
-  "#0ea5e9", // sky
-  "#3b82f6", // blue
-  "#6366f1", // indigo alt
+  "#ec4899", // pink
   "#d946ef", // fuchsia
-  "#f472b6", // pink light
-  "#fb923c", // orange light
+  "#8b5cf6", // violet
+  "#6366f1", // indigo
+  "#3b82f6", // blue
+  "#0ea5e9", // sky
+  "#06b6d4", // cyan
 ];
 
-// Cache de cores atribuídas por nome de categoria
+// Cores para Receitas (tons de verde, azul e neutros)
+const INCOME_PALETTE = [
+  "#22c55e", // green
+  "#10b981", // emerald
+  "#84cc16", // lime
+  "#14b8a6", // teal
+];
+
 const colorCache = new Map<string, string>();
 
 /**
- * Retorna uma cor determinística para o nome da categoria.
- * O mesmo nome sempre produz a mesma cor.
+ * Retorna uma cor determinística para o nome da categoria,
+ * baseada no tipo (income/expense).
  */
-export function getCategoryColor(name: string): string {
-  if (colorCache.has(name)) return colorCache.get(name)!;
+export function getCategoryColor(name: string, type: "income" | "expense" = "expense"): string {
+  const cacheKey = `${type}:${name}`;
+  if (colorCache.has(cacheKey)) return colorCache.get(cacheKey)!;
 
-  // Gera um hash simples do nome
+  const palette = type === "income" ? INCOME_PALETTE : EXPENSE_PALETTE;
+
+  // Hash simples
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  const index = Math.abs(hash) % CATEGORY_PALETTE.length;
-  const color = CATEGORY_PALETTE[index];
-  colorCache.set(name, color);
+  const index = Math.abs(hash) % palette.length;
+  const color = palette[index];
+  colorCache.set(cacheKey, color);
   return color;
 }
 
 /**
- * Retorna a cor com opacidade (para backgrounds).
+ * Retorna a cor com opacidade.
  */
-export function getCategoryBgColor(name: string, opacity = 0.15): string {
-  const hex = getCategoryColor(name);
+export function getCategoryBgColor(name: string, type: "income" | "expense" = "expense", opacity = 0.15): string {
+  const hex = getCategoryColor(name, type);
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);

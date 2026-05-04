@@ -224,7 +224,7 @@ export default function SubscriptionsClient({
                           {sub.name}
                         </td>
                         <td style={{ padding: "var(--space-4) var(--space-6)" }}>
-                          <span className={`badge badge-neutral`} style={{ borderLeft: `2px solid ${getCategoryColor(sub.category?.name || '')}` }}>
+                          <span className={`badge badge-neutral`} style={{ borderLeft: `2px solid ${getCategoryColor(sub.category?.name || '', sub.category?.type || 'expense')}` }}>
                             {sub.category?.name}
                           </span>
                         </td>
@@ -300,7 +300,7 @@ export default function SubscriptionsClient({
                       {isPaused ? <Play size={10} /> : <Pause size={10} />}
                       {isPaused ? "Pausada" : "Ativa"}
                     </button>
-                    <span className="badge badge-neutral" style={{ borderLeft: `2px solid ${getCategoryColor(sub.category?.name || '')}` }}>
+                    <span className="badge badge-neutral" style={{ borderLeft: `2px solid ${getCategoryColor(sub.category?.name || '', sub.category?.type || 'expense')}` }}>
                       {sub.category?.name}
                     </span>
                     <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>

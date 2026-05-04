@@ -33,7 +33,7 @@ export default function CategoryDonut({ data, type, title }: CategoryDonutProps)
     name: formatCategoryName(d.name),
     value: d.total_cents / 100,
     count: d.count,
-    color: getCategoryColor(d.name),
+    color: getCategoryColor(d.name, d.type),
   }));
 
   return (
