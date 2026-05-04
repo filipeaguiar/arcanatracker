@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parse } from "@/lib/parser";
-import { findOrCreateCategory } from "@/lib/actions/categories";
-import { findOrCreateTags } from "@/lib/actions/tags";
+import { findOrCreateCategoryAdmin, findOrCreateTagsAdmin } from "@/lib/actions/db-helpers";
 import { calculateInvoiceDates, calculateInstallmentInvoiceDates } from "@/lib/utils/invoice";
 import { formatCurrency } from "@/lib/utils/currency";
 
@@ -81,12 +80,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
+import { findOrCreateCategoryAdmin, findOrCreateTagsAdmin } from "@/lib/actions/db-helpers";
+...
     const parsed = parseResult.data;
     const userId = connection.user_id;
 
     // Resolve Categoria e Tags (bypass RLS via admin client)
-    const category = await findOrCreateCategory(parsed.category);
-    const tags = await findOrCreateTags(parsed.tags);
+    const category = await findOrCreateCategoryAdmin(supabaseAdmin, userId, parsed.category);
+    const tags = await findOrCreateTagsAdmin(supabaseAdmin, userId, parsed.tags);
     
     const isInstallment = parsed.installment_type !== null;
     const today = new Date().toISOString().split('T')[0];
