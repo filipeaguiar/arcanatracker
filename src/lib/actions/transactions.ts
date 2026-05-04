@@ -449,6 +449,87 @@ export async function listTransactions(
   };
 }
 
+// ─── Update Transaction ─────────────────────────────────────────────
+
+export interface UpdateTransactionInput {
+  id: string;
+  transaction_date: string;
+  amount_cents: number;
+  description: string;
+  category_id: string;
+  credit_card_id: string | null;
+  tag_ids: string[];
+}
+
+export async function updateTransaction(input: UpdateTransactionInput): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Unauthorized");
+
+  // 1. Resolve Invoice if using credit card
+  let invoiceId: string | null = null;
+  if (input.credit_card_id) {
+    const { data: card } = await supabase
+      .from("credit_cards")
+      .select("closing_day, due_day")
+      .eq("id", input.credit_card_id)
+      .single();
+
+    if (card) {
+      const dates = calculateInvoiceDates(
+        input.transaction_date,
+        card.closing_day,
+        card.due_day
+      );
+      invoiceId = await getOrCreateInvoice(
+        supabase,
+        input.credit_card_id,
+        dates.referenceMonth,
+        dates.closingDate,
+        dates.dueDate
+      );
+    }
+  }
+
+  // 2. Update the transaction
+  const { error: txError } = await supabase
+    .from("transactions")
+    .update({
+      transaction_date: input.transaction_date,
+      amount_cents: input.amount_cents,
+      description: input.description,
+      category_id: input.category_id,
+      credit_card_id: input.credit_card_id,
+      invoice_id: invoiceId,
+    })
+    .eq("id", input.id)
+    .eq("user_id", user.id);
+
+  if (txError) throw new Error(txError.message);
+
+  // 3. Update tags (Sync approach: delete all and re-insert)
+  await supabase
+    .from("transaction_tags")
+    .delete()
+    .eq("transaction_id", input.id);
+
+  if (input.tag_ids.length > 0) {
+    const { error: tagError } = await supabase.from("transaction_tags").insert(
+      input.tag_ids.map((tagId) => ({
+        transaction_id: input.id,
+        tag_id: tagId,
+      }))
+    );
+    if (tagError) throw new Error(tagError.message);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/transactions");
+}
+
 // ─── Delete Transaction ─────────────────────────────────────────────
 
 export async function deleteTransaction(id: string): Promise<void> {

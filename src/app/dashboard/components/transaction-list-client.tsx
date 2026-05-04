@@ -4,12 +4,52 @@ import { useState, useMemo } from "react";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatCategoryName } from "@/lib/utils/format";
 import { DeleteButton } from "./delete-button";
-import { ArrowDownRight, ArrowUpRight, Calendar, CreditCard, Tag, Search, FilterX } from "lucide-react";
+import { 
+  ArrowDownRight, 
+  ArrowUpRight, 
+  Calendar, 
+  CreditCard as CreditCardIcon, 
+  Tag as TagIcon, 
+  Search, 
+  FilterX,
+  Pencil,
+  Trash2
+} from "lucide-react";
 import type { Transaction } from "@/lib/actions/transactions";
+import type { Category } from "@/lib/actions/categories";
+import type { Tag } from "@/lib/actions/tags";
+import type { CreditCard } from "@/lib/actions/credit-cards";
 
-export default function TransactionListClient({ initialTransactions }: { initialTransactions: Transaction[] }) {
+// Swipe List imports
+import {
+  SwipeableList,
+  SwipeableListItem,
+  SwipeAction,
+  TrailingActions,
+  LeadingActions,
+  Type as SwipeType
+} from 'react-swipeable-list';
+import 'react-swipeable-list/dist/styles.css';
+
+import { TransactionEditModal } from "./transaction-edit-modal";
+import { deleteTransaction } from "@/lib/actions/transactions";
+
+interface TransactionListClientProps {
+  initialTransactions: Transaction[];
+  categories: Category[];
+  tags: Tag[];
+  cards: CreditCard[];
+}
+
+export default function TransactionListClient({ 
+  initialTransactions,
+  categories,
+  tags,
+  cards
+}: TransactionListClientProps) {
   const [query, setQuery] = useState("");
   const [negate, setNegate] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   // Lógica do MoneyLog: Filtra as transações em tempo real
   const filteredTransactions = useMemo(() => {
@@ -47,7 +87,7 @@ export default function TransactionListClient({ initialTransactions }: { initial
           // Tenta usar Regex (como no MoneyLog avançado)
           const regex = new RegExp(q, "i");
           match = regex.test(searchText);
-        } catch (e) {
+        } catch {
           // Fallback para includes simples se o regex for inválido
           match = searchText.includes(q);
         }
@@ -64,8 +104,25 @@ export default function TransactionListClient({ initialTransactions }: { initial
     setNegate(false);
   };
 
+  if (editingTransaction) {
+    console.log("Tentando renderizar modal para:", editingTransaction.description);
+  }
+
   return (
-    <div className="glass" style={{ overflow: "hidden" }}>
+    <div className="glass" style={{ overflow: "hidden", position: "relative" }}>
+      {/* Edit Modal */}
+      {editingTransaction && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+          <TransactionEditModal
+            transaction={editingTransaction}
+            categories={categories}
+            tags={tags}
+            cards={cards}
+            onClose={() => setEditingTransaction(null)}
+          />
+        </div>
+      )}
+
       {/* Cabeçalho e Barra de Busca (Omnibox) */}
       <div style={{ padding: "var(--space-6)", borderBottom: "1px solid var(--color-border-subtle)" }}>
         <h3 style={{ fontSize: "var(--text-lg)", fontWeight: "600", marginBottom: "var(--space-4)" }}>
@@ -142,7 +199,7 @@ export default function TransactionListClient({ initialTransactions }: { initial
                         <div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-2)", flexWrap: "wrap" }}>
                           {tx.installment_total && (
                             <div style={{ fontSize: "11px", color: "var(--color-text-tertiary)", display: "flex", alignItems: "center", gap: "4px" }}>
-                              <CreditCard size={12} />
+                              <CreditCardIcon size={12} />
                               Parcela {tx.installment_current}/{tx.installment_total}
                             </div>
                           )}
@@ -153,10 +210,11 @@ export default function TransactionListClient({ initialTransactions }: { initial
                               style={{ cursor: "pointer", border: "1px solid var(--color-border-subtle)" }}
                               className="badge badge-neutral"
                             >
-                              <Tag size={10} />
+                              <TagIcon size={10} />
                               {tag.name}
                             </button>
                           ))}
+
                         </div>
                       </td>
                       <td style={{ padding: "var(--space-4) var(--space-6)" }}>
@@ -172,7 +230,20 @@ export default function TransactionListClient({ initialTransactions }: { initial
                         {formatCurrency(tx.amount_cents)}
                       </td>
                       <td style={{ padding: "var(--space-4) var(--space-6)", textAlign: "right" }}>
-                        <DeleteButton id={tx.id} />
+                        <div style={{ display: "flex", gap: "var(--space-2)", justifyContent: "flex-end" }}>
+                          <button 
+                            onClick={() => {
+                              console.log("Clicou no lápis para editar:", tx.id);
+                              setEditingTransaction(tx);
+                            }}
+                            className="btn btn-ghost" 
+                            style={{ padding: "var(--space-1)" }}
+                            title="Editar"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <DeleteButton id={tx.id} />
+                        </div>
                       </td>
                     </tr>
                   );
@@ -190,55 +261,106 @@ export default function TransactionListClient({ initialTransactions }: { initial
             Nenhum lançamento corresponde ao filtro.
           </div>
         ) : (
-          filteredTransactions.map((tx) => {
-            const isIncome = tx.category?.type === "income";
-            return (
-              <div key={tx.id} className="tx-card">
-                <div className="tx-card-top">
-                  <div className="tx-card-desc">
-                    {isIncome ? <ArrowUpRight size={16} color="var(--color-income)" style={{ flexShrink: 0 }} /> : <ArrowDownRight size={16} color="var(--color-expense)" style={{ flexShrink: 0 }} />}
-                    <span>{tx.description}</span>
-                  </div>
-                  <div className="tx-card-amount" style={{ color: isIncome ? "var(--color-income)" : "var(--color-text-primary)" }}>
-                    {formatCurrency(tx.amount_cents)}
-                  </div>
-                </div>
-                <div className="tx-card-meta">
-                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <Calendar size={12} />
-                    {new Date(tx.transaction_date + "T12:00:00").toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
-                  </span>
-                  <button 
-                    onClick={() => handleTagClick(formatCategoryName(tx.category?.name) || "")}
-                    className={`badge badge-${isIncome ? "income" : "expense"}`} 
-                    style={{ cursor: "pointer" }}
+          <SwipeableList fullSwipe={false} type={SwipeType.IOS}>
+            {filteredTransactions.map((tx) => {
+              const isIncome = tx.category?.type === "income";
+              
+              const leadingActions = () => (
+                <LeadingActions>
+                  <SwipeAction onClick={() => setEditingTransaction(tx)}>
+                    <div style={{ 
+                      backgroundColor: 'var(--color-info)', 
+                      color: 'white', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      padding: '0 var(--space-6)',
+                      height: '100%',
+                      gap: 'var(--space-2)'
+                    }}>
+                      <Pencil size={20} />
+                      <span style={{ fontWeight: '600' }}>Editar</span>
+                    </div>
+                  </SwipeAction>
+                </LeadingActions>
+              );
+
+              const trailingActions = () => (
+                <TrailingActions>
+                  <SwipeAction
+                    destructive={true}
+                    onClick={() => {
+                      if (confirm("Excluir transação?")) {
+                        deleteTransaction(tx.id);
+                      }
+                    }}
                   >
-                    {formatCategoryName(tx.category?.name)}
-                  </button>
-                  {tx.installment_total && (
-                    <span className="badge badge-neutral" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                      <CreditCard size={10} />
-                      {tx.installment_current}/{tx.installment_total}
-                    </span>
-                  )}
-                  {tx.tags?.map((tag) => (
-                    <button 
-                      key={tag.id} 
-                      onClick={() => handleTagClick(tag.name)}
-                      style={{ cursor: "pointer", border: "1px solid var(--color-border-subtle)" }}
-                      className="badge badge-neutral"
-                    >
-                      <Tag size={10} />
-                      {tag.name}
-                    </button>
-                  ))}
-                  <div className="tx-card-actions">
-                    <DeleteButton id={tx.id} />
+                    <div style={{ 
+                      backgroundColor: 'var(--color-expense)', 
+                      color: 'white', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      padding: '0 var(--space-6)',
+                      height: '100%',
+                      gap: 'var(--space-2)'
+                    }}>
+                      <Trash2 size={20} />
+                      <span style={{ fontWeight: '600' }}>Apagar</span>
+                    </div>
+                  </SwipeAction>
+                </TrailingActions>
+              );
+
+              return (
+                <SwipeableListItem
+                  key={tx.id}
+                  leadingActions={leadingActions()}
+                  trailingActions={trailingActions()}
+                >
+                  <div className="tx-card" style={{ width: '100%', background: 'var(--color-bg-secondary)' }}>
+                    <div className="tx-card-top">
+                      <div className="tx-card-desc">
+                        {isIncome ? <ArrowUpRight size={16} color="var(--color-income)" style={{ flexShrink: 0 }} /> : <ArrowDownRight size={16} color="var(--color-expense)" style={{ flexShrink: 0 }} />}
+                        <span>{tx.description}</span>
+                      </div>
+                      <div className="tx-card-amount" style={{ color: isIncome ? "var(--color-income)" : "var(--color-text-primary)" }}>
+                        {formatCurrency(tx.amount_cents)}
+                      </div>
+                    </div>
+                    <div className="tx-card-meta">
+                      <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <Calendar size={12} />
+                        {new Date(tx.transaction_date + "T12:00:00").toLocaleDateString("pt-BR", { day: '2-digit', month: 'short' })}
+                      </span>
+                      <button 
+                        onClick={() => handleTagClick(formatCategoryName(tx.category?.name) || "")}
+                        className={`badge badge-${isIncome ? "income" : "expense"}`} 
+                        style={{ cursor: "pointer" }}
+                      >
+                        {formatCategoryName(tx.category?.name)}
+                      </button>
+                      {tx.installment_total && (
+                        <span className="badge badge-neutral" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                          <CreditCardIcon size={10} />
+                          {tx.installment_current}/{tx.installment_total}
+                        </span>
+                      )}
+                      {tx.tags?.map((tag) => (
+                        <button 
+                          key={tag.id} 
+                          onClick={() => handleTagClick(tag.name)}
+                          style={{ cursor: "pointer", border: "1px solid var(--color-border-subtle)" }}
+                          className="badge badge-neutral"
+                        >
+                          <TagIcon size={10} />
+                          {tag.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })
+                </SwipeableListItem>
+              );
+            })}
+          </SwipeableList>
         )}
       </div>
     </div>

@@ -45,35 +45,33 @@ export default function CategoryDonut({ data, type, title }: CategoryDonutProps)
       <div className="donut-layout" style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
         {/* Chart */}
         <div style={{ width: "160px", height: "160px", position: "relative", flexShrink: 0 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={75}
-                paddingAngle={3}
-                dataKey="value"
-                stroke="none"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  background: "var(--color-bg-secondary)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-md)",
-                  fontSize: "var(--text-xs)",
-                  color: "var(--color-text-primary)",
-                }}
-                formatter={(value: any) => [formatCurrency(Math.round(Number(value) * 100)), ""]}
-                labelFormatter={(label: any) => String(label)}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <PieChart width={160} height={160}>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={75}
+              paddingAngle={3}
+              dataKey="value"
+              stroke="none"
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={index} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                background: "var(--color-bg-secondary)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "var(--radius-md)",
+                fontSize: "var(--text-xs)",
+                color: "var(--color-text-primary)",
+              }}
+              formatter={(value: any) => [formatCurrency(Math.round(Number(value) * 100)), ""]}
+              labelFormatter={(label: any) => String(label)}
+            />
+          </PieChart>
           {/* Centro */}
           <div style={{
             position: "absolute", top: "50%", left: "50%",

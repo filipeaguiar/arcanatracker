@@ -128,7 +128,13 @@ async function DashboardContent({ searchParams }: { searchParams: Promise<{ year
 
       {/* Transaction List */}
       <Suspense fallback={<SummarySkeleton />}>
-        <TransactionList from={startStr} to={endStr} />
+        <TransactionList 
+          from={startStr} 
+          to={endStr} 
+          categories={categories} 
+          tags={tags} 
+          cards={cards} 
+        />
       </Suspense>
     </>
   );
