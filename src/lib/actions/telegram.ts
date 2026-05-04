@@ -11,6 +11,7 @@ export interface TelegramConnection {
   status: TelegramConnectionStatus;
   telegram_username: string | null;
   connection_token: string | null;
+  updated_at: string;
 }
 
 const BOT_USERNAME = "arcanatrackerbot";
