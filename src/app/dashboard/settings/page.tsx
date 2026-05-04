@@ -12,6 +12,7 @@ import {
 import { getCategoryColor, getCategoryBgColor } from "@/lib/utils/category-colors";
 import { formatCategoryName } from "@/lib/utils/format";
 import { Settings, Plus, Pencil, Trash2, Check, X, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { TelegramIntegration } from "./components/telegram-integration";
 
 export default function SettingsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -82,9 +83,12 @@ export default function SettingsPage() {
           <Settings size={28} /> Configurações
         </h1>
         <p style={{ color: "var(--color-text-secondary)" }}>
-          Gerencie suas categorias de lançamentos.
+          Ajuste suas categorias e integrações.
         </p>
       </header>
+
+      {/* Integração Telegram */}
+      <TelegramIntegration />
 
 
 
