@@ -185,8 +185,17 @@ export function TelegramIntegration() {
           borderRadius: "var(--radius-lg)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
-            <div style={{ background: "#0088cc", color: "white", padding: "8px", borderRadius: "50%" }}>
-              <Send size={16} />
+            <div style={{ 
+              background: "#0088cc", 
+              color: "white", 
+              width: "32px", 
+              height: "32px", 
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              <Send size={16} style={{ transform: "translate(-1px, 1px)" }} />
             </div>
             <div>
               <p style={{ fontSize: "var(--text-sm)", fontWeight: "600" }}>@{connection.telegram_username}</p>
