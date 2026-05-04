@@ -8,6 +8,7 @@ export type TelegramConnectionStatus = 'awaiting_telegram' | 'awaiting_approval'
 
 export interface TelegramConnection {
   id: string;
+  user_id: string;
   status: TelegramConnectionStatus;
   telegram_username: string | null;
   connection_token: string | null;
