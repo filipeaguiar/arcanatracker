@@ -36,9 +36,16 @@ export function TelegramIntegration() {
         .channel('telegram_sync')
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'telegram_connections', filter: `user_id=eq.${user.id}` },
+          { event: '*', schema: 'public', table: 'telegram_connections' },
           (payload) => {
-            setConnection(payload.new as TelegramConnection);
+            const newData = payload.new as TelegramConnection;
+            const oldData = payload.old as TelegramConnection;
+            
+            if (newData && newData.user_id === user.id) {
+              setConnection(newData);
+            } else if (payload.eventType === 'DELETE' && oldData && oldData.user_id === user.id) {
+              setConnection(null);
+            }
           }
         )
         .subscribe();
