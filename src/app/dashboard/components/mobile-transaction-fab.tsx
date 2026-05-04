@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Plus, Mic, Send, X, Hash, LayoutGrid, CreditCard, Check } from "lucide-react";
+import { Plus, Mic, Send, X, Hash, LayoutGrid, CreditCard, Check, CircleDollarSign } from "lucide-react";
 import { createTransaction } from "@/lib/actions/transactions";
 import type { Category } from "@/lib/actions/categories";
 import type { Tag } from "@/lib/actions/tags";
@@ -46,28 +46,31 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
   };
 
   const handleCardIconClick = () => {
-    if (cards.length === 0) return; // No cards to select
+    if (cards.length === 0) return;
 
-    if (cards.length === 1) {
-      // Toggle card usage directly
-      setUseCard(!useCard);
-      if (!useCard) setSelectedCardId(cards[0].id);
-    } else {
-      // Show selection menu for multiple cards
-      setShowCardMenu(true);
-    }
-  };
+    // Opções: [null (Débito), ...cartões]
+    const options = [null, ...cards];
+    const currentIndex = useCard 
+      ? options.findIndex(c => c?.id === selectedCardId) 
+      : 0;
+    
+    const nextIndex = (currentIndex + 1) % options.length;
+    const nextOption = options[nextIndex];
 
-  const selectCard = (cardId: string | null) => {
-    if (cardId === null) {
+    if (nextOption === null) {
       setUseCard(false);
     } else {
       setUseCard(true);
-      setSelectedCardId(cardId);
+      setSelectedCardId(nextOption.id);
     }
-    setShowCardMenu(false);
-    inputRef.current?.focus();
+    
+    // Feedback tátil simples (se disponível)
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(10);
+    }
   };
+
+
 
   const handleAppend = (text: string) => {
     setInput(prev => {
@@ -187,14 +190,19 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
                   className={`btn ${useCard ? 'btn-primary' : 'btn-ghost'}`}
                   style={{
                     padding: "var(--space-3)",
-                    border: useCard ? "none" : "1px solid var(--color-border)",
-                    background: useCard ? "var(--color-brand-primary)" : "var(--color-bg-secondary)",
-                    color: useCard ? "white" : "var(--color-text-secondary)",
+                    border: useCard ? "1px solid var(--color-brand-primary)" : "1px solid var(--color-border)",
+                    background: useCard ? "rgba(var(--color-brand-primary-rgb), 0.1)" : "var(--color-bg-secondary)",
+                    color: useCard ? "var(--color-brand-primary)" : "var(--color-text-secondary)",
                     borderRadius: "var(--radius-lg)",
+                    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: "48px"
                   }}
-                  title="Pagar com Cartão"
+                  title={useCard ? "Pagando com Cartão" : "Pagando no Débito"}
                 >
-                  <CreditCard size={20} />
+                  {useCard ? <CreditCard size={20} /> : <CircleDollarSign size={20} />}
                 </button>
               )}
 
@@ -217,6 +225,27 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
                 <Send size={20} />
               </button>
             </form>
+
+            {/* Selected Card Indicator Pill */}
+            {useCard && (
+              <div style={{ display: "flex", justifyContent: "flex-start", marginTop: "-var(--space-2)", animation: "fadeIn 0.2s ease" }}>
+                <div className="badge badge-primary" style={{ 
+                  fontSize: "var(--text-xs)", 
+                  padding: "4px 10px", 
+                  borderRadius: "100px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--space-1)",
+                  background: "var(--color-brand-primary)",
+                  color: "white",
+                  fontWeight: "600",
+                  boxShadow: "var(--shadow-sm)"
+                }}>
+                  <CreditCard size={12} />
+                  {cards.find(c => c.id === selectedCardId)?.name || "Cartão"}
+                </div>
+              </div>
+            )}
 
             {/* Prominent Audio Button */}
             <button 
@@ -256,75 +285,7 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
               Gravar Áudio
             </button>
 
-            {/* Card Menu Overlay */}
-            {showCardMenu && cards.length > 1 && (
-              <div
-                className="glass-blur"
-                style={{
-                  position: "absolute",
-                  bottom: "100%",
-                  left: "var(--space-6)",
-                  right: "var(--space-6)",
-                  marginBottom: "var(--space-4)",
-                  background: "var(--color-bg-primary)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-xl)",
-                  padding: "var(--space-4)",
-                  zIndex: 102,
-                  boxShadow: "var(--shadow-lg)",
-                  animation: "popIn 0.2s ease forwards",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "var(--space-2)"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-2)" }}>
-                  <h4 style={{ fontSize: "var(--text-sm)", fontWeight: "600", color: "var(--color-text-secondary)" }}>Selecione o Cartão</h4>
-                  <button onClick={() => setShowCardMenu(false)} className="btn btn-ghost" style={{ padding: "var(--space-1)" }}>
-                    <X size={16} />
-                  </button>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => selectCard(null)}
-                  className="btn"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "var(--space-3)",
-                    background: !useCard ? "var(--color-bg-secondary)" : "transparent",
-                    border: "none",
-                    borderRadius: "var(--radius-md)",
-                    textAlign: "left"
-                  }}
-                >
-                  <span>Débito/Dinheiro</span>
-                  {!useCard && <Check size={16} color="var(--color-brand-primary)" />}
-                </button>
-
-                {cards.map(card => (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => selectCard(card.id)}
-                    className="btn"
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      padding: "var(--space-3)",
-                      background: useCard && selectedCardId === card.id ? "var(--color-bg-secondary)" : "transparent",
-                      border: "none",
-                      borderRadius: "var(--radius-md)",
-                      textAlign: "left"
-                    }}
-                  >
-                    <span>{card.name}</span>
-                    {useCard && selectedCardId === card.id && <Check size={16} color="var(--color-brand-primary)" />}
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Feedback Message */}
             {feedback && (

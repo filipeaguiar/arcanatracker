@@ -101,6 +101,8 @@
   --color-brand-500: #6366f1;
   --color-brand-600: #4f46e5;
   --color-brand-700: #4338ca;
+  --color-brand-primary: var(--color-brand-500);
+  --color-brand-primary-rgb: 99, 102, 241;
 
   /* Semantic — Income (Emerald) */
   --color-income: #34d399;
@@ -176,6 +178,8 @@
 
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.08);
   --shadow-glow-sm: 0 0 10px rgba(99, 102, 241, 0.05);
+  --color-brand-primary: var(--color-brand-600);
+  --color-brand-primary-rgb: 79, 70, 229; /* RGB for brand-600 */
 }
 
 /* --- Global Styles --- */
