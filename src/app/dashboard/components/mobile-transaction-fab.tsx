@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Plus, Mic, Send, X, Hash, LayoutGrid, CreditCard, Check, CircleDollarSign } from "lucide-react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { Plus, Mic, Send, X, Hash, LayoutGrid, CreditCard, CircleDollarSign, HelpCircle } from "lucide-react";
 import { createTransaction } from "@/lib/actions/transactions";
 import type { Category } from "@/lib/actions/categories";
 import type { Tag } from "@/lib/actions/tags";
 import type { CreditCard as CreditCardType } from "@/lib/actions/credit-cards";
+import { highlightDsl, extractParts } from "@/lib/parser/dsl-highlight";
 
 interface MobileTransactionFabProps {
   categories: Category[];
@@ -25,12 +26,21 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
   const [selectedCardId, setSelectedCardId] = useState<string>(defaultCardId);
   const [showCardMenu, setShowCardMenu] = useState(false);
 
+  // DSL input modes
+  const [isTextMode, setIsTextMode] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Derived DSL data
+  const segments = useMemo(() => highlightDsl(input), [input]);
+  const parts = useMemo(() => extractParts(input), [input]);
+  const hasValidParse = parts.value !== null && parts.category !== null;
 
   // Auto-focus when opened
   useEffect(() => {
     if (isOpen) {
-      // Small delay to allow animation
+      setIsTextMode(true);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
@@ -39,6 +49,8 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
     setIsOpen(false);
     setFeedback(null);
     setShowCardMenu(false);
+    setShowHelp(false);
+    setIsTextMode(true);
   };
 
   const openSheet = () => {
@@ -70,15 +82,52 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
     }
   };
 
-
-
   const handleAppend = (text: string) => {
     setInput(prev => {
       const trimmed = prev.trim();
       return trimmed ? `${trimmed} ${text} ` : `${text} `;
     });
-    inputRef.current?.focus();
+    setIsTextMode(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
+
+  // Switch to chip mode when input blurs (if there's valid content)
+  const handleInputBlur = useCallback(() => {
+    // Small delay to avoid flicker when tapping send button
+    setTimeout(() => {
+      if (input.trim() && hasValidParse) {
+        setIsTextMode(false);
+      }
+    }, 150);
+  }, [input, hasValidParse]);
+
+  // Switch to text mode and focus input, optionally near a segment
+  const switchToTextMode = useCallback((cursorHint?: "start" | "end" | number) => {
+    setIsTextMode(true);
+    setTimeout(() => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      if (cursorHint === "start") {
+        el.setSelectionRange(0, 0);
+      } else if (cursorHint === "end" || cursorHint === undefined) {
+        el.setSelectionRange(input.length, input.length);
+      } else if (typeof cursorHint === "number") {
+        el.setSelectionRange(cursorHint, cursorHint);
+      }
+    }, 50);
+  }, [input]);
+
+  // Find approximate cursor position for each chip type
+  const getCursorForPart = useCallback((partType: "value" | "description" | "category" | "tag") => {
+    // Walk segments to find start position of the matching part
+    let pos = 0;
+    for (const seg of segments) {
+      if (seg.type === partType) return pos;
+      pos += seg.text.length;
+    }
+    return input.length;
+  }, [segments, input]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,6 +147,7 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
         type: "income",
       });
       setInput("");
+      setIsTextMode(true);
       setTimeout(() => {
         closeSheet();
       }, 1500);
@@ -110,6 +160,114 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
 
     setLoading(false);
   }
+
+  // ─── Render helpers ──────────────────────────────────────────────
+
+  /** Chips view — shown when input is blurred and parse is valid */
+  const renderChips = () => (
+    <div
+      className="dsl-chips-container"
+      onClick={() => switchToTextMode("end")}
+    >
+      {parts.value && (
+        <span
+          className="dsl-chip dsl-chip-value"
+          onClick={(e) => {
+            e.stopPropagation();
+            switchToTextMode(getCursorForPart("value"));
+          }}
+        >
+          <span className="dsl-chip-label">valor</span>
+          {parts.value}
+        </span>
+      )}
+      {parts.description && (
+        <span
+          className="dsl-chip dsl-chip-description"
+          onClick={(e) => {
+            e.stopPropagation();
+            switchToTextMode(getCursorForPart("description"));
+          }}
+        >
+          <span className="dsl-chip-label">desc</span>
+          {parts.description}
+        </span>
+      )}
+      {parts.category && (
+        <span
+          className="dsl-chip dsl-chip-category"
+          onClick={(e) => {
+            e.stopPropagation();
+            switchToTextMode(getCursorForPart("category"));
+          }}
+        >
+          <span className="dsl-chip-label">cat</span>
+          {parts.category}
+        </span>
+      )}
+      {parts.tags.map((tag, i) => (
+        <span
+          key={i}
+          className="dsl-chip dsl-chip-tag"
+          onClick={(e) => {
+            e.stopPropagation();
+            switchToTextMode(getCursorForPart("tag"));
+          }}
+        >
+          <span className="dsl-chip-label">tag</span>
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
+
+  /** Text mode — colored overlay on transparent input */
+  const renderTextInput = () => (
+    <div className="dsl-input-wrapper">
+      <input
+        ref={inputRef}
+        type="text"
+        className="dsl-raw-input"
+        placeholder="50,00 uber transporte #tag"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onBlur={handleInputBlur}
+        disabled={loading}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
+      />
+      {/* Colored overlay */}
+      {input && (
+        <div className="dsl-highlight-overlay" aria-hidden="true">
+          {segments.map((seg, i) => (
+            <span key={i} className={`dsl-seg-${seg.type}`}>
+              {seg.text}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  /** Help popup content */
+  const renderHelpPopup = () => (
+    <div className="dsl-help-popup" onClick={(e) => e.stopPropagation()}>
+      <div className="dsl-help-title">Formato de entrada</div>
+      <div className="dsl-help-format">
+        <span style={{ background: "var(--color-dsl-value-bg)", color: "var(--color-dsl-value)" }}>valor</span>
+        <span style={{ background: "var(--color-dsl-description-bg)", color: "var(--color-dsl-description)" }}>descrição</span>
+        <span style={{ background: "var(--color-dsl-category-bg)", color: "var(--color-dsl-category)" }}>categoria</span>
+        <span style={{ background: "var(--color-dsl-tag-bg)", color: "var(--color-dsl-tag)" }}>#tag</span>
+      </div>
+      <div className="dsl-help-examples">
+        <div><code>50,00 uber transporte</code></div>
+        <div><code>10*190 tenis compras #gabriel</code></div>
+        <div><code>100/3 mercado alimentação #família</code></div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="mobile-only">
@@ -206,16 +364,27 @@ export function MobileTransactionFab({ categories, tags, cards }: MobileTransact
                 </button>
               )}
 
-              <input
-                ref={inputRef}
-                type="text"
-                className="input"
-                placeholder="Ex: 50.00 uber #transporte"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                style={{ flex: 1, fontSize: "16px", padding: "var(--space-4)", borderRadius: "var(--radius-lg)" }} // 16px prevents iOS zoom
-                disabled={loading}
-              />
+              {/* DSL Input — dual mode */}
+              <div className="dsl-input-container">
+                {isTextMode ? renderTextInput() : renderChips()}
+
+                {/* Help icon */}
+                <div style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    className="dsl-help-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowHelp(h => !h);
+                    }}
+                    title="Ajuda com o formato"
+                  >
+                    <HelpCircle size={18} />
+                  </button>
+                  {showHelp && renderHelpPopup()}
+                </div>
+              </div>
+
               <button
                 type="submit"
                 className="btn btn-primary"

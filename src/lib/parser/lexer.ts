@@ -42,7 +42,7 @@ export function tokenize(input: string): Token[] {
       continue;
     }
 
-    // Number: digits with optional decimal point
+    // Number: digits with optional decimal point (accepts both . and ,)
     if (/[0-9]/.test(char)) {
       const start = i;
       let value = "";
@@ -50,9 +50,9 @@ export function tokenize(input: string): Token[] {
         value += input[i];
         i++;
       }
-      // Check for decimal part
-      if (i < input.length && input[i] === "." && i + 1 < input.length && /[0-9]/.test(input[i + 1])) {
-        value += input[i]; // the dot
+      // Check for decimal part (dot or comma)
+      if (i < input.length && (input[i] === "." || input[i] === ",") && i + 1 < input.length && /[0-9]/.test(input[i + 1])) {
+        value += "."; // normalize comma to dot
         i++;
         while (i < input.length && /[0-9]/.test(input[i])) {
           value += input[i];

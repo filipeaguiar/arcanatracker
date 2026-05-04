@@ -226,3 +226,64 @@ describe("Currency precision", () => {
     }
   });
 });
+
+// ─── Comma Decimal Separator ────────────────────────────────────────
+
+describe("Comma decimal separator", () => {
+  it("lexer tokenizes comma-decimal numbers", () => {
+    const tokens = tokenize("50,00 uber transporte");
+    expect(tokens[0]).toMatchObject({ type: "NUMBER", value: "50.00" });
+  });
+
+  it("lexer normalizes comma to dot in value", () => {
+    const tokens = tokenize("10,5 café alimentação");
+    expect(tokens[0]).toMatchObject({ type: "NUMBER", value: "10.5" });
+  });
+
+  it("parses simple entry with comma: 50,00 uber transporte", () => {
+    const result = parse("50,00 uber transporte");
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data.amount_cents).toBe(5000);
+    expect(result.data.description).toBe("uber");
+    expect(result.data.category).toBe("transporte");
+  });
+
+  it("parses single decimal digit with comma: 10,5 café alimentação → 1050", () => {
+    const result = parse("10,5 café alimentação");
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data.amount_cents).toBe(1050);
+  });
+
+  it("parses fixed installments with comma value: 10*190,50 tenis compras", () => {
+    const result = parse("10*190,50 tenis compras");
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data.amount_cents).toBe(19050);
+    expect(result.data.installment_total).toBe(10);
+    expect(result.data.installment_type).toBe("fixed");
+    expect(result.data.installments.every(v => v === 19050)).toBe(true);
+  });
+
+  it("parses division with comma: 100,01/3 mercado compras", () => {
+    const result = parse("100,01/3 mercado compras");
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data.amount_cents).toBe(10001);
+    expect(result.data.installments).toEqual([3334, 3334, 3333]);
+  });
+
+  it("dot still works after adding comma support", () => {
+    const result = parse("10.50 café alimentação");
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data.amount_cents).toBe(1050);
+  });
+});
+

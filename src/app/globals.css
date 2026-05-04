@@ -138,6 +138,18 @@
   /* Dark-specific shadows */
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
   --shadow-glow-sm: 0 0 10px rgba(99, 102, 241, 0.1);
+
+  /* DSL Syntax Highlighting */
+  --color-dsl-value: #c4b5fd;
+  --color-dsl-value-bg: rgba(196, 181, 253, 0.12);
+  --color-dsl-operator: #fbbf24;
+  --color-dsl-operator-bg: rgba(251, 191, 36, 0.12);
+  --color-dsl-description: var(--color-text-primary);
+  --color-dsl-description-bg: rgba(255, 255, 255, 0.06);
+  --color-dsl-category: #60a5fa;
+  --color-dsl-category-bg: rgba(96, 165, 250, 0.12);
+  --color-dsl-tag: #34d399;
+  --color-dsl-tag-bg: rgba(52, 211, 153, 0.12);
 }
 
 /* --- Light Theme --- */
@@ -180,6 +192,18 @@
   --shadow-glow-sm: 0 0 10px rgba(99, 102, 241, 0.05);
   --color-brand-primary: var(--color-brand-600);
   --color-brand-primary-rgb: 79, 70, 229; /* RGB for brand-600 */
+
+  /* DSL Syntax Highlighting (light) */
+  --color-dsl-value: #7c3aed;
+  --color-dsl-value-bg: rgba(124, 58, 237, 0.08);
+  --color-dsl-operator: #d97706;
+  --color-dsl-operator-bg: rgba(217, 119, 6, 0.08);
+  --color-dsl-description: var(--color-text-primary);
+  --color-dsl-description-bg: rgba(0, 0, 0, 0.04);
+  --color-dsl-category: #2563eb;
+  --color-dsl-category-bg: rgba(37, 99, 235, 0.08);
+  --color-dsl-tag: #059669;
+  --color-dsl-tag-bg: rgba(5, 150, 105, 0.08);
 }
 
 /* --- Global Styles --- */
@@ -875,4 +899,241 @@ input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px var(--color-surface) inset !important;
   -webkit-text-fill-color: var(--color-text-primary) !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ============================================
+   DSL Input — Syntax Highlighted Chip Input
+   ============================================ */
+
+/* Container that looks like an input field */
+.dsl-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Wrapper for text-mode (overlay approach) */
+.dsl-input-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.dsl-input-wrapper .dsl-raw-input {
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: transparent;
+  caret-color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  -webkit-text-fill-color: transparent;
+}
+
+.dsl-input-wrapper .dsl-raw-input:focus {
+  outline: none;
+  border-color: var(--color-brand-500);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.dsl-input-wrapper .dsl-raw-input::placeholder {
+  -webkit-text-fill-color: var(--color-text-tertiary);
+  color: var(--color-text-tertiary);
+}
+
+/* Colored overlay that sits on top of transparent text */
+.dsl-highlight-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: var(--space-4);
+  pointer-events: none;
+  overflow: hidden;
+  white-space: pre;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+/* Segment colors */
+.dsl-seg-value { color: var(--color-dsl-value); font-weight: 700; }
+.dsl-seg-operator { color: var(--color-dsl-operator); font-weight: 700; }
+.dsl-seg-description { color: var(--color-dsl-description); }
+.dsl-seg-category { color: var(--color-dsl-category); font-weight: 600; }
+.dsl-seg-tag { color: var(--color-dsl-tag); font-weight: 600; }
+.dsl-seg-space { color: transparent; }
+.dsl-seg-unknown { color: var(--color-text-tertiary); }
+
+/* ─── Chip mode (parsed pills inside input) ─── */
+
+.dsl-chips-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px var(--space-3);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  min-height: 50px;
+  cursor: text;
+  transition: border-color var(--transition-fast);
+}
+
+.dsl-chips-container:hover {
+  border-color: var(--color-border-hover);
+}
+
+.dsl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  animation: chipIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dsl-chip:active {
+  transform: scale(0.95);
+}
+
+.dsl-chip-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.dsl-chip-value {
+  background: var(--color-dsl-value-bg);
+  color: var(--color-dsl-value);
+  border-color: rgba(196, 181, 253, 0.2);
+}
+
+.dsl-chip-operator {
+  background: var(--color-dsl-operator-bg);
+  color: var(--color-dsl-operator);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+.dsl-chip-description {
+  background: var(--color-dsl-description-bg);
+  color: var(--color-dsl-description);
+  border-color: var(--color-border);
+}
+
+.dsl-chip-category {
+  background: var(--color-dsl-category-bg);
+  color: var(--color-dsl-category);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+.dsl-chip-tag {
+  background: var(--color-dsl-tag-bg);
+  color: var(--color-dsl-tag);
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+/* ─── Help popup ─── */
+
+.dsl-help-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.dsl-help-btn:hover,
+.dsl-help-btn:active {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.dsl-help-popup {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-xl);
+  z-index: 1200;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dsl-help-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.dsl-help-format {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+}
+
+.dsl-help-format span {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.dsl-help-examples {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dsl-help-examples code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
 }
