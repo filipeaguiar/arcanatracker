@@ -1229,7 +1229,3 @@ input:-webkit-autofill:active {
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
 }
-
-.teste {
-  background-color: #2563eb;
-}
