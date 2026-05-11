@@ -130,7 +130,7 @@ export default function CategorySpendingChart({
               />
               <Tooltip 
                 contentStyle={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)" }}
-                formatter={(val: number) => [formatCurrency(Math.round(val * 100)), ""]}
+                formatter={(val: any) => [formatCurrency(Math.round(Number(val) * 100)), ""]}
                 labelFormatter={(label) => formatDate(label as string)}
               />
               <Legend iconType="circle" wrapperStyle={{ fontSize: "10px", paddingTop: "20px" }} />
@@ -165,7 +165,7 @@ export default function CategorySpendingChart({
               />
               <Tooltip 
                 contentStyle={{ background: "var(--color-bg-secondary)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)" }}
-                formatter={(val: number) => [formatCurrency(Math.round(val * 100)), ""]}
+                formatter={(val: any) => [formatCurrency(Math.round(Number(val) * 100)), ""]}
                 labelFormatter={(label) => formatDate(label as string)}
               />
               <Legend iconType="circle" wrapperStyle={{ fontSize: "10px", paddingTop: "20px" }} />

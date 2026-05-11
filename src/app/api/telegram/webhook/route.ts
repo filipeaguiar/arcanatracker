@@ -5,12 +5,6 @@ import { findOrCreateCategoryAdmin, findOrCreateTagsAdmin } from "@/lib/actions/
 import { calculateInvoiceDates, calculateInstallmentInvoiceDates } from "@/lib/utils/invoice";
 import { formatCurrency } from "@/lib/utils/currency";
 
-// Nota: Usamos a Secret Key da Vercel
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY! 
-);
-
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 async function sendTelegramMessage(chatId: number, text: string) {
@@ -22,6 +16,12 @@ async function sendTelegramMessage(chatId: number, text: string) {
 }
 
 export async function POST(req: Request) {
+  // Nota: Inicializamos aqui para evitar erro no build (env vars ausentes)
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY! 
+  );
+
   try {
     const body = await req.json();
     const { message } = body;
