@@ -15,6 +15,24 @@ export interface DailySpending {
   income_cents: number;
 }
 
+export interface TagBreakdown {
+  name: string;
+  total_cents: number;
+  count: number;
+}
+
+export type ReportingInterval = "month" | "year";
+
+export interface CategorySpendingData {
+  period: string; // ISO date string (YYYY-MM-DD) normalized to start of period
+  [category: string]: string | number; // Category name -> amount_cents (number) or period (string)
+}
+
+export interface SpendingTrendsResult {
+  data: CategorySpendingData[];
+  categories: string[]; // List of categories found in the period
+}
+
 export async function getCategoryBreakdown(
   from: string,
   to: string
@@ -102,12 +120,6 @@ export async function getDailySpending(
   );
 }
 
-export interface TagBreakdown {
-  name: string;
-  total_cents: number;
-  count: number;
-}
-
 export async function getTagBreakdown(
   from: string,
   to: string
@@ -118,7 +130,7 @@ export async function getTagBreakdown(
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
 
-  // Fetch expense transactions only (usually tags are used for expenses, or we can fetch all and filter by expense)
+  // Fetch expense transactions only
   const { data: txRaw, error: txError } = await supabase
     .from("transactions")
     .select("id, amount_cents, category:categories!inner(type)")
@@ -157,7 +169,6 @@ export async function getTagBreakdown(
     };
     
     existing.total_cents += amount;
-    // Note: This count is the number of transactions with this tag
     existing.count += 1;
     map.set(tagName, existing);
   }
@@ -165,4 +176,94 @@ export async function getTagBreakdown(
   return Array.from(map.values()).sort(
     (a, b) => b.total_cents - a.total_cents
   );
+}
+
+/**
+ * Aggregates spending by category and period.
+ * Groups low-volume categories (< 5% of total) into "Others".
+ */
+export async function getCategorySpendingTrends(
+  interval: ReportingInterval = "month",
+  from?: string,
+  to?: string
+): Promise<SpendingTrendsResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Unauthorized");
+
+  let query = supabase
+    .from("transactions")
+    .select(`
+      amount_cents,
+      transaction_date,
+      category:categories(name, type)
+    `)
+    .eq("user_id", user.id);
+
+  if (from) query = query.gte("transaction_date", from);
+  if (to) query = query.lte("transaction_date", to);
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  const expenses = (data ?? []).filter(tx => {
+    const cat = Array.isArray(tx.category) ? tx.category[0] : tx.category;
+    return (cat as any)?.type === "expense";
+  });
+
+  if (expenses.length === 0) {
+    return { data: [], categories: [] };
+  }
+
+  const categoryTotals: Record<string, number> = {};
+  let totalVolume = 0;
+
+  expenses.forEach(tx => {
+    const catName = (tx.category as any)?.name || "outros";
+    categoryTotals[catName] = (categoryTotals[catName] || 0) + tx.amount_cents;
+    totalVolume += tx.amount_cents;
+  });
+
+  const threshold = totalVolume * 0.05;
+  const mainCategories = Object.keys(categoryTotals).filter(cat => categoryTotals[cat] >= threshold);
+  const hasOthers = mainCategories.length < Object.keys(categoryTotals).length;
+
+  const groupedData: Record<string, Record<string, number>> = {};
+
+  expenses.forEach(tx => {
+    const date = new Date(tx.transaction_date + "T12:00:00");
+    let periodKey: string;
+
+    if (interval === "month") {
+      periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+    } else {
+      periodKey = `${date.getFullYear()}-01-01`;
+    }
+
+    const catName = (tx.category as any)?.name || "outros";
+    const finalCatName = mainCategories.includes(catName) ? catName : "Outros";
+
+    if (!groupedData[periodKey]) {
+      groupedData[periodKey] = {};
+    }
+
+    groupedData[periodKey][finalCatName] = (groupedData[periodKey][finalCatName] || 0) + tx.amount_cents;
+  });
+
+  const periods = Object.keys(groupedData).sort();
+  const resultData: CategorySpendingData[] = periods.map(period => ({
+    period,
+    ...groupedData[period],
+  }));
+
+  const finalCategories = [...mainCategories];
+  if (hasOthers && !finalCategories.includes("Outros")) {
+    finalCategories.push("Outros");
+  }
+
+  return {
+    data: resultData,
+    categories: finalCategories,
+  };
 }

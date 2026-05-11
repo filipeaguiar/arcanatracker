@@ -1,9 +1,10 @@
-import { getDailySpending, getCategoryBreakdown, getTagBreakdown } from "@/lib/actions/analytics";
+import { getDailySpending, getCategoryBreakdown, getTagBreakdown, getCategorySpendingTrends } from "@/lib/actions/analytics";
 import { getTransactionSummary } from "@/lib/actions/transactions";
 import ComparativeCards from "@/app/dashboard/reports/components/comparative-cards";
 import TrendChart from "@/app/dashboard/reports/components/trend-chart";
 import TagAnalysis from "@/app/dashboard/reports/components/tag-analysis";
 import CategoryDonut from "@/app/dashboard/components/category-donut";
+import CategorySpendingChart from "@/app/dashboard/components/category-spending-chart";
 
 interface ReportsDashboardProps {
   period: string;
@@ -11,7 +12,7 @@ interface ReportsDashboardProps {
 }
 
 export default async function ReportsDashboard({ period, refDate }: ReportsDashboardProps) {
-  // Calcular datas baseadas no período
+  // ... (previous logic for from/to dates)
   const ref = new Date(refDate);
   const year = ref.getFullYear();
   const month = ref.getMonth();
@@ -58,12 +59,19 @@ export default async function ReportsDashboard({ period, refDate }: ReportsDashb
   const prevFromStr = formatDate(previousFrom);
   const prevToStr = formatDate(previousTo);
 
-  const [currentSummary, prevSummary, dailyData, categoryData, tagData] = await Promise.all([
+  // For the trend chart, if it's quarterly/semiannual/annual, we want to see the full period.
+  // If it's monthly, we might want to see the last 6 months anyway to give context?
+  // But the user specifically said: "I think it doesn't make sense to show in the monthly view."
+  
+  const showCategoryTrends = period !== "monthly";
+
+  const [currentSummary, prevSummary, dailyData, categoryData, tagData, trendData] = await Promise.all([
     getTransactionSummary(fromStr, toStr),
     getTransactionSummary(prevFromStr, prevToStr),
     getDailySpending(fromStr, toStr),
     getCategoryBreakdown(fromStr, toStr),
     getTagBreakdown(fromStr, toStr),
+    showCategoryTrends ? getCategorySpendingTrends("month", fromStr, toStr) : Promise.resolve({ data: [], categories: [] }),
   ]);
 
   return (
@@ -72,6 +80,11 @@ export default async function ReportsDashboard({ period, refDate }: ReportsDashb
       
       {/* Gráfico de Tendência em destaque (Largura Total) */}
       <TrendChart data={dailyData} period={period} />
+
+      {/* Gráfico de Tendência por Categoria (Condicional) */}
+      {showCategoryTrends && trendData.data.length > 0 && (
+        <CategorySpendingChart data={trendData.data} categories={trendData.categories} />
+      )}
 
       {/* Grid de detalhamento */}
       <div style={{ 
