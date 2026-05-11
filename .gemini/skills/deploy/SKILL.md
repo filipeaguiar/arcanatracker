@@ -1,5 +1,5 @@
 ---
-name: build-and-commit
+name: deploy
 description: Validates the project by running the build command, and if successful, stages changes, generates a commit message, and pushes to the remote repository.
 ---
 
