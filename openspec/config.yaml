@@ -1,20 +1,36 @@
 schema: spec-driven
 
-# Project context (optional)
+# Project context
 # This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Tech Stack:
+  - Frontend: Next.js 16 (React 19), TypeScript, Vanilla CSS (Design Tokens/Custom System).
+  - UI Library: Lucide-React, Recharts (for charts), React Swipeable List.
+  - Backend/DB: Supabase (Auth, PostgreSQL, SSR).
+  - Styling: Vanilla CSS ONLY. NO TailwindCSS. Use CSS variables defined in globals.css.
+  - Domain: Personal Financial Control (Tracker).
+  - Core Feature: Multi-modal entry (DSL, voice, forms).
+  - Key Logic: Brazilian credit card billing (closing/due dates, installments).
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Coding Conventions:
+  - Currency: Strictly use integers (cents) to avoid floating-point errors.
+  - Internationalization: Support for PT-BR and EN-US (check src/lib/i18n).
+  - Persistence: Database logic in Supabase migrations and Server Actions.
+  - Philosophy: Low cognitive friction, fast input, dark-first premium design.
+
+# Per-artifact rules
+rules:
+  proposal:
+    - Always link to existing pillars (Product/UX, DSL Parser, System Design, API).
+    - Ensure the "low friction" philosophy is preserved.
+  design:
+    - Prefer Vanilla CSS and CSS Variables for all styling.
+    - Match the "Glassmorphism" and "Dark-first" aesthetic defined in globals.css.
+    - Explicitly mention database impacts (Supabase migrations).
+  spec:
+    - All financial values must be specified in cents (integers).
+    - DSL changes must adhere to the EBNF grammar defined in the core specs.
+  tasks:
+    - Break database tasks into clear migration steps.
+    - Ensure new UI components are tested for responsiveness (Mobile-first).
+    - Include linting and vitest runs as verification steps.

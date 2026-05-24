@@ -9,15 +9,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { type SupabaseClient } from "@supabase/supabase-js";
 import { parse } from "@/lib/parser";
-import { findOrCreateCategory } from "./categories";
-import { findOrCreateTags } from "./tags";
 import { resolveDefaultCard } from "./credit-cards";
-import {
-  calculateInvoiceDates,
-  calculateInstallmentInvoiceDates,
-} from "@/lib/utils/invoice";
+import { createTransactionCore, getOrCreateInvoice } from "./transaction-core";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -66,12 +60,9 @@ export interface ListTransactionsResult {
  *
  * Full pipeline:
  *   1. Parse DSL input
- *   2. Resolve category (find or create)
- *   3. Resolve tags (find or create)
- *   4. Resolve credit card (auto)
- *   5. Calculate invoice dates (if credit card)
- *   6. Insert transaction(s) into DB
- *   7. Link tags
+ *   2. Resolve credit card (auto)
+ *   3. Delegate to createTransactionCore
+ *   4. Revalidate cache
  */
 export async function createTransaction(
   input: string,
@@ -98,13 +89,7 @@ export async function createTransaction(
   const txDate = transactionDate || new Date().toISOString().split("T")[0];
 
   try {
-    // 2. Resolve category
-    const category = await findOrCreateCategory(parsed.category);
-
-    // 3. Resolve tags
-    const tags = await findOrCreateTags(parsed.tags);
-
-    // 4. Resolve credit card
+    // 2. Resolve credit card
     let finalCreditCardId: string | null = null;
 
     // Always use credit card if it's an installment format (e.g., 10*30)
@@ -126,15 +111,22 @@ export async function createTransaction(
       }
     }
 
-    // 5. Build the params for internal insertion
-    return await insertTransactionRecords(supabase, user.id, {
+    // 3. Call Core
+    const result = await createTransactionCore(supabase, user.id, {
       transactionDate: txDate,
       amountCentsList: parsed.installments,
       description: parsed.description || parsed.category,
-      categoryId: category.id,
+      categoryName: parsed.category,
+      tagNames: parsed.tags,
       creditCardId: finalCreditCardId,
-      tagIds: tags.map(t => t.id),
     });
+
+    if (result.success) {
+      revalidatePath("/dashboard");
+      revalidatePath("/transactions");
+    }
+
+    return result;
 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
@@ -163,211 +155,45 @@ export async function createTransactionStructured(
   if (!user) return { success: false, error: "Não autenticado" };
 
   try {
-    let categoryId = input.category_id;
-    if (!categoryId && input.category_name) {
-      const cat = await findOrCreateCategory(input.category_name);
-      categoryId = cat.id;
+    const isInstallment = input.installment_total > 1;
+    const count = input.installment_total > 0 ? input.installment_total : 1;
+    
+    let amounts: number[] = [];
+    if (isInstallment) {
+      const baseAmount = Math.floor(input.amount_cents / count);
+      const remainder = input.amount_cents % count;
+      amounts = Array(count).fill(baseAmount);
+      amounts[0] += remainder;
+    } else {
+      amounts = [input.amount_cents];
     }
-    if (!categoryId) throw new Error("Categoria é obrigatória");
 
-    let tagIds = input.tag_ids || [];
-    if (input.tag_names && input.tag_names.length > 0) {
-      const tags = await findOrCreateTags(input.tag_names);
-      tagIds = [...tagIds, ...tags.map(t => t.id)];
+    let finalCreditCardId = input.credit_card_id || null;
+    if (isInstallment && !finalCreditCardId) {
+      const defaultCard = await resolveDefaultCard();
+      finalCreditCardId = defaultCard?.id ?? null;
     }
 
-  const isInstallment = input.installment_total > 1;
-  const count = input.installment_total > 0 ? input.installment_total : 1;
-  
-  let amounts: number[] = [];
-  if (isInstallment) {
-    const baseAmount = Math.floor(input.amount_cents / count);
-    const remainder = input.amount_cents % count;
-    amounts = Array(count).fill(baseAmount);
-    amounts[0] += remainder;
-  } else {
-    amounts = [input.amount_cents];
-  }
-
-  let finalCreditCardId = input.credit_card_id || null;
-  if (isInstallment && !finalCreditCardId) {
-    const defaultCard = await resolveDefaultCard();
-    finalCreditCardId = defaultCard?.id ?? null;
-  }
-
-    return await insertTransactionRecords(supabase, user.id, {
+    // Call Core
+    const result = await createTransactionCore(supabase, user.id, {
       transactionDate: input.transaction_date,
       amountCentsList: amounts,
       description: input.description,
-      categoryId: categoryId,
+      categoryName: input.category_name || "outros", // Fallback if missing
+      tagNames: input.tag_names || [],
       creditCardId: finalCreditCardId,
-      tagIds: tagIds,
     });
+
+    if (result.success) {
+      revalidatePath("/dashboard");
+      revalidatePath("/transactions");
+    }
+
+    return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return { success: false, error: message };
   }
-}
-
-// ─── Internal Helper: Insert Records ─────────────────────────────────
-
-async function insertTransactionRecords(
-  supabase: SupabaseClient,
-  userId: string,
-  params: {
-    transactionDate: string;
-    amountCentsList: number[];
-    description: string;
-    categoryId: string;
-    creditCardId: string | null;
-    tagIds: string[];
-  }
-): Promise<CreateTransactionResult> {
-  const isInstallment = params.amountCentsList.length > 1;
-  const installmentCount = params.amountCentsList.length;
-  const groupId = isInstallment ? crypto.randomUUID() : null;
-
-  let invoiceIds: (string | null)[] = Array(installmentCount).fill(null);
-
-  if (params.creditCardId) {
-    // Fetch card details for closing/due day
-    const { data: card } = await supabase
-      .from("credit_cards")
-      .select("id, closing_day, due_day")
-      .eq("id", params.creditCardId)
-      .single();
-
-    if (card) {
-      const invoiceDatesList = isInstallment
-        ? calculateInstallmentInvoiceDates(
-            params.transactionDate,
-            installmentCount,
-            card.closing_day,
-            card.due_day
-          )
-        : [calculateInvoiceDates(params.transactionDate, card.closing_day, card.due_day)];
-
-      const invoiceDataList = await Promise.all(
-        invoiceDatesList.map(async (dates: { referenceMonth: string; closingDate: string; dueDate: string }) => {
-          const id = await getOrCreateInvoice(
-            supabase,
-            card.id,
-            dates.referenceMonth,
-            dates.closingDate,
-            dates.dueDate
-          );
-          return { id, dueDate: dates.dueDate };
-        })
-      );
-      
-      invoiceIds = invoiceDataList.map(d => d.id);
-      // We'll use these due dates for the transaction dates
-      const invoiceDueDates = invoiceDataList.map(d => d.dueDate);
-
-      // Build rows using invoice due dates
-      const rows = params.amountCentsList.map((amountCents, index) => {
-        return {
-          user_id: userId,
-          transaction_date: invoiceDueDates[index],
-          amount_cents: amountCents,
-          description: params.description,
-          category_id: params.categoryId,
-          credit_card_id: params.creditCardId,
-          invoice_id: invoiceIds[index],
-          installment_group_id: groupId,
-          installment_current: isInstallment ? index + 1 : null,
-          installment_total: isInstallment ? installmentCount : null,
-        };
-      });
-
-      const { data: inserted, error: insertError } = await supabase
-        .from("transactions")
-        .insert(rows)
-        .select("id");
-
-      if (insertError) {
-        return { success: false, error: insertError.message };
-      }
-
-      if (params.tagIds.length > 0 && inserted) {
-        const tagLinks = inserted.flatMap((tx: { id: string }) =>
-          params.tagIds.map((tagId) => ({
-            transaction_id: tx.id,
-            tag_id: tagId,
-          }))
-        );
-
-        const { error: tagError } = await supabase.from("transaction_tags").insert(tagLinks);
-        if (tagError) console.error("Failed to link tags:", tagError);
-      }
-
-      revalidatePath("/dashboard");
-      revalidatePath("/transactions");
-
-      return {
-        success: true,
-        data: {
-          created: inserted?.length ?? 0,
-          group_id: groupId,
-        },
-      };
-    }
-  }
-
-  // Fallback for non-credit card transactions (Direct payments)
-  const rows = params.amountCentsList.map((amountCents, index) => {
-    let installmentTxDate = params.transactionDate;
-    if (isInstallment && index > 0) {
-      const date = new Date(params.transactionDate + "T12:00:00");
-      date.setMonth(date.getMonth() + index);
-      installmentTxDate = date.toISOString().split("T")[0];
-    }
-
-    return {
-      user_id: userId,
-      transaction_date: installmentTxDate,
-      amount_cents: amountCents,
-      description: params.description,
-      category_id: params.categoryId,
-      credit_card_id: null,
-      invoice_id: null,
-      installment_group_id: groupId,
-      installment_current: isInstallment ? index + 1 : null,
-      installment_total: isInstallment ? installmentCount : null,
-    };
-  });
-
-  const { data: inserted, error: insertError } = await supabase
-    .from("transactions")
-    .insert(rows)
-    .select("id");
-
-  if (insertError) {
-    return { success: false, error: insertError.message };
-  }
-
-  if (params.tagIds.length > 0 && inserted) {
-    const tagLinks = inserted.flatMap((tx: { id: string }) =>
-      params.tagIds.map((tagId) => ({
-        transaction_id: tx.id,
-        tag_id: tagId,
-      }))
-    );
-
-    const { error: tagError } = await supabase.from("transaction_tags").insert(tagLinks);
-    if (tagError) console.error("Failed to link tags:", tagError);
-  }
-
-  revalidatePath("/dashboard");
-  revalidatePath("/transactions");
-
-  return {
-    success: true,
-    data: {
-      created: inserted?.length ?? 0,
-      group_id: groupId,
-    },
-  };
 }
 
 // ─── List Transactions ──────────────────────────────────────────────
@@ -619,39 +445,4 @@ export async function getTransactionSummary(
     total_expense_cents: totalExpense,
     balance_cents: totalIncome - totalExpense,
   };
-}
-
-// ─── Internal: Invoice get-or-create ────────────────────────────────
-
-async function getOrCreateInvoice(
-  supabase: SupabaseClient,
-  creditCardId: string,
-  referenceMonth: string,
-  closingDate: string,
-  dueDate: string
-): Promise<string> {
-  // Try to find existing invoice
-  const { data: existing } = await supabase
-    .from("invoices")
-    .select("id")
-    .eq("credit_card_id", creditCardId)
-    .eq("reference_month", referenceMonth)
-    .single();
-
-  if (existing) return existing.id;
-
-  // Create new invoice
-  const { data: created, error } = await supabase
-    .from("invoices")
-    .insert({
-      credit_card_id: creditCardId,
-      reference_month: referenceMonth,
-      closing_date: closingDate,
-      due_date: dueDate,
-    })
-    .select("id")
-    .single();
-
-  if (error) throw new Error(`Failed to create invoice: ${error.message}`);
-  return created.id;
 }

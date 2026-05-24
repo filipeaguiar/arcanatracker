@@ -1,10 +1,4 @@
-# Transactions Specification
-> Source: `src/lib/actions/transactions.ts`, `supabase/migrations/005_create_transactions.sql`
-
-## Purpose
-Manages the lifecycle of financial transactions, including creation via DSL, installment grouping, and automatic categorization.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Transaction Creation
 The system MUST support creating transactions from both structured input and DSL strings. This creation logic MUST be encapsulated in a unified core service that supports both browser-based (authenticated) and service-based (admin) contexts.
@@ -23,6 +17,8 @@ The system MUST support creating transactions from both structured input and DSL
 - **AND** if NO credit card is used, the `transaction_date` SHALL increment by 1 month for each subsequent installment
 - **AND** if a credit card IS used, the `transaction_date` for each installment SHALL match the corresponding invoice `due_date`
 
+## ADDED Requirements
+
 ### Requirement: Transaction Core Service
 The system SHALL provide a `createTransactionCore` function that accepts a `SupabaseClient` instance and a `userId` to allow for environment-agnostic transaction creation.
 
@@ -30,28 +26,3 @@ The system SHALL provide a `createTransactionCore` function that accepts a `Supa
 - **GIVEN** a Supabase Admin client and a valid `userId`
 - **WHEN** `createTransactionCore` is called from a backend context (e.g., Telegram Webhook)
 - **THEN** the system SHALL create the transactions for that user without requiring a browser session
-
-### Requirement: Transaction Deletion
-The system SHALL handle individual and grouped transaction deletions.
-
-#### Scenario: Deleting a Grouped Transaction
-- **GIVEN** a transaction that is part of an installment group
-- **WHEN** the transaction is deleted
-- **THEN** ALL transactions sharing the same `installment_group_id` SHALL be deleted
-
-### Requirement: Data Integrity
-- **User Isolation**: All transaction operations MUST be scoped to the authenticated user using Row Level Security (RLS).
-- **Category Requirement**: Every transaction MUST be linked to a valid category.
-
-### Requirement: Transaction Reporting Support
-Transactions SHALL provide the necessary data structures and query capabilities to support spending reports and visualizations.
-
-#### Scenario: Aggregation for Reporting
-- **GIVEN** a query for spending reports
-- **WHEN** filtering by date and category
-- **THEN** the transaction records SHALL be correctly aggregated by their category and timestamp to provide accurate reporting data.
-
-## Technical Notes
-- **Implementation**: `src/lib/actions/transactions.ts`
-- **Database**: `transactions` table
-- **Dependencies**: `categories`, `tags`, `credit-cards`

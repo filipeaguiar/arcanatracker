@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parse } from "@/lib/parser";
-import { findOrCreateCategoryAdmin, findOrCreateTagsAdmin } from "@/lib/actions/db-helpers";
-import { calculateInvoiceDates, calculateInstallmentInvoiceDates } from "@/lib/utils/invoice";
+import { createTransactionCore } from "@/lib/actions/transaction-core";
 import { formatCurrency } from "@/lib/utils/currency";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -82,16 +81,11 @@ export async function POST(req: Request) {
 
     const parsed = parseResult.data;
     const userId = connection.user_id;
-
-    // Resolve Categoria e Tags (bypass RLS via admin client)
-    const category = await findOrCreateCategoryAdmin(supabaseAdmin, userId, parsed.category);
-    const tags = await findOrCreateTagsAdmin(supabaseAdmin, userId, parsed.tags);
+    const today = new Date().toISOString().split('T')[0];
     
     const isInstallment = parsed.installment_type !== null;
-    const today = new Date().toISOString().split('T')[0];
 
-    // Para o Telegram, por simplicidade, vamos usar Débito se não for parcelado
-    // e o cartão padrão se for parcelado.
+    // Resolve Cartão Padrão para parcelados
     let creditCardId = null;
     if (isInstallment) {
       const { data: defaultCard } = await supabaseAdmin
@@ -104,61 +98,23 @@ export async function POST(req: Request) {
       creditCardId = defaultCard?.id || null;
     }
 
-    // Inserção direta
-    const installmentCount = parsed.installments.length;
-    const groupId = isInstallment ? crypto.randomUUID() : null;
-
-    // Se tiver cartão, resolve fatura
-    let invoiceIds: (string | null)[] = Array(installmentCount).fill(null);
-    if (creditCardId) {
-      const { data: card } = await supabaseAdmin.from('credit_cards').select('*').eq('id', creditCardId).single();
-      if (card) {
-        const datesList = isInstallment 
-          ? calculateInstallmentInvoiceDates(today, installmentCount, card.closing_day, card.due_day)
-          : [calculateInvoiceDates(today, card.closing_day, card.due_day)];
-        
-        invoiceIds = await Promise.all(datesList.map(async (d) => {
-          const { data: inv } = await supabaseAdmin.from('invoices').select('id').eq('credit_card_id', card.id).eq('reference_month', d.referenceMonth).single();
-          if (inv) return inv.id;
-          const { data: newInv } = await supabaseAdmin.from('invoices').insert({
-            credit_card_id: card.id,
-            reference_month: d.referenceMonth,
-            closing_date: d.closingDate,
-            due_date: d.dueDate
-          }).select('id').single();
-          return newInv?.id || null;
-        }));
-      }
-    }
-
-    const rows = parsed.installments.map((cents, idx) => ({
-      user_id: userId,
-      transaction_date: today,
-      amount_cents: Math.abs(cents),
+    // Chama o core unificado
+    const result = await createTransactionCore(supabaseAdmin, userId, {
+      transactionDate: today,
+      amountCentsList: parsed.installments,
       description: parsed.description || parsed.category,
-      category_id: category.id,
-      credit_card_id: creditCardId,
-      invoice_id: invoiceIds[idx],
-      installment_group_id: groupId,
-      installment_current: isInstallment ? idx + 1 : null,
-      installment_total: isInstallment ? installmentCount : null,
-    }));
+      categoryName: parsed.category,
+      tagNames: parsed.tags,
+      creditCardId,
+    });
 
-    const { data: inserted, error: insError } = await supabaseAdmin.from('transactions').insert(rows).select('id');
-
-    if (insError) {
-      await sendTelegramMessage(chatId, `❌ *Erro ao salvar:* ${insError.message}`);
+    if (!result.success) {
+      await sendTelegramMessage(chatId, `❌ *Erro ao salvar:* ${result.error}`);
       return NextResponse.json({ ok: true });
     }
 
-    // Link Tags
-    if (tags.length > 0 && inserted) {
-      const tagLinks = inserted.flatMap(tx => tags.map(t => ({ transaction_id: tx.id, tag_id: t.id })));
-      await supabaseAdmin.from('transaction_tags').insert(tagLinks);
-    }
-
     const totalStr = formatCurrency(parsed.installments.reduce((a, b) => a + b, 0));
-    await sendTelegramMessage(chatId, `✅ *Lançamento realizado!*\n\n💰 *Valor:* ${totalStr}\n📝 *Desc:* ${rows[0].description}\n📂 *Cat:* ${category.name}${isInstallment ? `\n💳 *Cartão:* Parcelado em ${installmentCount}x` : ''}`);
+    await sendTelegramMessage(chatId, `✅ *Lançamento realizado!*\n\n💰 *Valor:* ${totalStr}\n📝 *Desc:* ${parsed.description || parsed.category}\n📂 *Cat:* ${parsed.category}${isInstallment ? `\n💳 *Cartão:* Parcelado em ${parsed.installments.length}x` : ''}`);
     
     return NextResponse.json({ ok: true });
   } catch (error) {
